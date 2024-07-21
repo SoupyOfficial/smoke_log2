@@ -1,13 +1,77 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/foundation.dart';
 
 class DataUtils {
   static var collectionName = kReleaseMode ? 'JacobLogs' : 'JacobLogsTest';
 
-  static List<FlSpot> convertDataToChartData(List<QueryDocumentSnapshot> data) {
+  static Future<List<Map<String, dynamic>>> fetchDataFromFirestore() async {
+    final QuerySnapshot snapshot =
+        await FirebaseFirestore.instance.collection(collectionName).get();
+    final data =
+        snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    return data;
+  }
+
+  static Future<List<FlSpot>> fetchDataForRange(String range) async {
+    // Fetch data from Firestore and filter based on the selected range
+    final data = await fetchDataFromFirestore();
+    print(data);
+    final now = DateTime.now();
+    final filteredData = data.where((entry) {
+      final timestamp = DateTime.fromMillisecondsSinceEpoch(entry['timestamp']);
+      switch (range) {
+        case 'week':
+          return timestamp.isAfter(now.subtract(Duration(days: 7)));
+        case 'month':
+          return timestamp.isAfter(now.subtract(Duration(days: 30)));
+        case '3 months':
+          return timestamp.isAfter(now.subtract(Duration(days: 90)));
+        case '6 months':
+          return timestamp.isAfter(now.subtract(Duration(days: 180)));
+        case 'year':
+          return timestamp.isAfter(now.subtract(Duration(days: 365)));
+        default:
+          return false;
+      }
+    }).toList();
+
+    return filteredData.map((entry) {
+      return FlSpot(entry['timestamp'].toDouble(), entry['value'].toDouble());
+    }).toList();
+  }
+
+  static List<Map<String, dynamic>> filterDataForRange(
+      List<Map<String, dynamic>> data, String range) {
+    final now = DateTime.now();
+    return data.where((entry) {
+      final timestamp = (entry['timestamp'] as Timestamp).toDate();
+      switch (range) {
+        case 'week':
+          return timestamp.isAfter(now.subtract(Duration(days: 7)));
+        case 'month':
+          return timestamp.isAfter(now.subtract(Duration(days: 30)));
+        case '3 months':
+          return timestamp.isAfter(now.subtract(Duration(days: 90)));
+        case '6 months':
+          return timestamp.isAfter(now.subtract(Duration(days: 180)));
+        case 'year':
+          return timestamp.isAfter(now.subtract(Duration(days: 365)));
+        default:
+          return false;
+      }
+    }).toList();
+  }
+
+  static List<Map<String, dynamic>> sortDataByTimestamp(
+      List<Map<String, dynamic>> data) {
+    data.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
+    return data;
+  }
+
+  static List<FlSpot> convertDataToChartData(List<Map<String, dynamic>> data) {
     Map<DateTime, double> cumulativeLengths = {};
     for (var doc in data) {
       var timestamp = (doc['timestamp'] as Timestamp).toDate();
@@ -26,71 +90,58 @@ class DataUtils {
     }).toList();
   }
 
-  static List<QueryDocumentSnapshot> filterDataForLastWeek(
-      List<QueryDocumentSnapshot> data) {
-    final now = DateTime.now();
-    final oneWeekAgo = DateTime(now.year, now.month, now.day)
-        .subtract(const Duration(days: 7));
-    return data.where((doc) {
-      var timestamp = (doc['timestamp'] as Timestamp).toDate();
-      return timestamp.isAfter(oneWeekAgo);
-    }).toList();
-  }
-
-  static List<QueryDocumentSnapshot> sortDataByTimestamp(
-      List<QueryDocumentSnapshot> data) {
-    data.sort((a, b) {
-      var aTimestamp = (a['timestamp'] as Timestamp).toDate();
-      var bTimestamp = (b['timestamp'] as Timestamp).toDate();
-      return aTimestamp.compareTo(bTimestamp);
-    });
-    return data;
-  }
-
   static List<Map<String, dynamic>> convertDataToTableData(
-      List<QueryDocumentSnapshot> data) {
+      List<Map<String, dynamic>> data) {
     return data.map((doc) {
       return {
         'timestamp': doc['timestamp'] as Timestamp,
-        'mood':
-            doc['moodRating'] as int, // Assuming mood is stored as an integer
-        'physical': doc['physicalRating']
-            as int, // Assuming physical is stored as an integer
+        'mood': doc['moodRating'] != null ? doc['moodRating'] as int : -1,
+        'physical':
+            doc['physicalRating'] != null ? doc['physicalRating'] as int : -1,
         'length': doc['length'] as double,
-        'id': doc.id,
+        'id': doc['id'],
       };
     }).toList();
   }
 
-  static String formatDateWithOrdinalSuffix(DateTime date) {
-    final day = date.day;
-    String suffix;
-
-    if (day >= 11 && day <= 13) {
-      suffix = 'th';
-    } else {
-      switch (day % 10) {
-        case 1:
-          suffix = 'st';
-          break;
-        case 2:
-          suffix = 'nd';
-          break;
-        case 3:
-          suffix = 'rd';
-          break;
-        default:
-          suffix = 'th';
-      }
+  static double determineInterval(String range) {
+    switch (range) {
+      case 'week':
+        return 86400000; // one day in milliseconds
+      case 'month':
+        return 2592000000 / 8; // one month in milliseconds divided by 30 days
+      case '3 months':
+        return 7776000000 /
+            9; // three months in milliseconds divided by 90 days
+      case '6 months':
+        return 15552000000 /
+            6; // six months in milliseconds divided by 180 days
+      case 'year':
+        return 31536000000 / 12; // one year in milliseconds divided by 365 days
+      default:
+        return 86400000; // default to one day
     }
-
-    final dateFormat = DateFormat('MMMM d');
-    return '${dateFormat.format(date)}<sup>$suffix</sup>';
   }
 
-  static String getOrdinalSuffix(double timestamp) {
-    final date = DateTime.fromMillisecondsSinceEpoch(timestamp.toInt());
-    final day = date.day;
+  static String formatDate(double value, String range) {
+    final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    switch (range) {
+      case 'week':
+        return DateFormat('MM/dd').format(date);
+      case 'month':
+      case '3 months':
+      case '6 months':
+        return DateFormat('MM/dd').format(date);
+      case 'year':
+        return DateFormat('MM/yyyy').format(date);
+      default:
+        return DateFormat('MM/dd').format(date);
+    }
+  }
+
+  static String getOrdinalSuffix(double value) {
+    final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+    int day = date.day;
     if (day >= 11 && day <= 13) {
       return 'th';
     }
