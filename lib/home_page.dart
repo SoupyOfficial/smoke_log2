@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   Duration totalLengthForDay = const Duration(seconds: 0);
   Duration timeSinceLastUse = const Duration(seconds: 0);
   Timer? _timer;
-  var collectionName = kReleaseMode ? 'JacobLogsTest' : 'JacobLogsTest';
+  var collectionName = kReleaseMode ? 'JacobLogs' : 'JacobLogsTest';
 
   @override
   void initState() {
