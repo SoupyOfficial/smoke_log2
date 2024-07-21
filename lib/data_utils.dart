@@ -18,7 +18,6 @@ class DataUtils {
   static Future<List<FlSpot>> fetchDataForRange(String range) async {
     // Fetch data from Firestore and filter based on the selected range
     final data = await fetchDataFromFirestore();
-    print(data);
     final now = DateTime.now();
     final filteredData = data.where((entry) {
       final timestamp = DateTime.fromMillisecondsSinceEpoch(entry['timestamp']);
@@ -88,6 +87,33 @@ class DataUtils {
     return cumulativeLengths.entries.map((entry) {
       return FlSpot(entry.key.millisecondsSinceEpoch.toDouble(), entry.value);
     }).toList();
+  }
+
+  static List<Map<String, dynamic>> calculateRollingWeek(
+      List<Map<String, dynamic>> data) {
+    List<Map<String, dynamic>> rollingWeekData = [];
+
+    for (int i = 0; i < data.length; i++) {
+      DateTime currentTimestamp = DateTime.parse(data[i]['timestamp']);
+      DateTime startTimestamp = currentTimestamp.subtract(Duration(hours: 24));
+
+      double rollingSum = 0;
+
+      for (int j = 0; j <= i; j++) {
+        DateTime timestamp = DateTime.parse(data[j]['timestamp']);
+        if (timestamp.isAfter(startTimestamp) &&
+            timestamp.isBefore(currentTimestamp)) {
+          rollingSum += data[j]['length'];
+        }
+      }
+
+      rollingWeekData.add({
+        'timestamp': data[i]['timestamp'],
+        'rolling_length': rollingSum,
+      });
+    }
+
+    return rollingWeekData;
   }
 
   static List<Map<String, dynamic>> convertDataToTableData(

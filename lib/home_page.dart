@@ -20,7 +20,8 @@ class _HomePageState extends State<HomePage> {
   List<String> reasons = [];
   Duration timerDuration = const Duration(seconds: 0);
   String submissionMessage = '';
-  Duration totalLengthForDay = const Duration(seconds: 0);
+  Duration totalLengthFor24H = const Duration(seconds: 0);
+  Duration totalLengthForToday = const Duration(seconds: 0);
   Duration timeSinceLastUse = const Duration(seconds: 0);
   Timer? _timer;
   var collectionName = kReleaseMode ? 'JacobLogs' : 'JacobLogsTest';
@@ -42,19 +43,31 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _fetchData() async {
     DateTime now = DateTime.now();
-    // DateTime date = DateTime(now.year, now.month, now.day);
+    DateTime date = DateTime(now.year, now.month, now.day);
     DateTime twentyFourHoursAgo = now.subtract(const Duration(hours: 24));
 
     // Query to get the total length for the last 24 hours
-    QuerySnapshot lengthSnapshot = await FirebaseFirestore.instance
+    QuerySnapshot lengthDaySnapshot = await FirebaseFirestore.instance
+        .collection(collectionName)
+        .where('timestamp', isGreaterThanOrEqualTo: date)
+        .get();
+
+    double totalDayLengthInSeconds = 0;
+
+    for (var doc in lengthDaySnapshot.docs) {
+      totalDayLengthInSeconds += (doc['length'] as num).toDouble();
+    }
+
+    // Query to get the total length for the last 24 hours
+    QuerySnapshot length24HSnapshot = await FirebaseFirestore.instance
         .collection(collectionName)
         .where('timestamp', isGreaterThanOrEqualTo: twentyFourHoursAgo)
         .get();
 
-    double totalLengthInSeconds = 0;
+    double total24HLengthInSeconds = 0;
 
-    for (var doc in lengthSnapshot.docs) {
-      totalLengthInSeconds += (doc['length'] as num).toDouble();
+    for (var doc in length24HSnapshot.docs) {
+      total24HLengthInSeconds += (doc['length'] as num).toDouble();
     }
 
     // Query to get the most recent record
@@ -70,9 +83,13 @@ class _HomePageState extends State<HomePage> {
     }
 
     setState(() {
-      totalLengthForDay = Duration(
-        seconds: totalLengthInSeconds.floor(),
-        milliseconds: getDecimalPart(totalLengthInSeconds),
+      totalLengthForToday = Duration(
+        seconds: totalDayLengthInSeconds.floor(),
+        milliseconds: getDecimalPart(totalDayLengthInSeconds),
+      );
+      totalLengthFor24H = Duration(
+        seconds: total24HLengthInSeconds.floor(),
+        milliseconds: getDecimalPart(total24HLengthInSeconds),
       );
       timeSinceLastUse = lastUse != null
           ? DateTime.now().difference(lastUse)
@@ -167,7 +184,14 @@ class _HomePageState extends State<HomePage> {
                       child: Column(
                         children: [
                           Text(
-                            'Total Length for Today: ${_formatDuration(totalLengthForDay)}',
+                            'Total Length for Today: ${_formatDuration(totalLengthForToday)}',
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: Theme.of(context).colorScheme.onPrimary),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Total Length for Last 24 Hours: ${_formatDuration(totalLengthFor24H)}',
                             style: TextStyle(
                                 fontSize: 16,
                                 color: Theme.of(context).colorScheme.onPrimary),
@@ -179,7 +203,7 @@ class _HomePageState extends State<HomePage> {
                                 fontSize: 16,
                                 color: Theme.of(context).colorScheme.onPrimary),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           InputSection(
                             title: 'Current Mood',
                             child: SegmentedInput(
@@ -191,7 +215,7 @@ class _HomePageState extends State<HomePage> {
                               },
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           InputSection(
                             title: 'Physical Comfort',
                             child: SegmentedInput(
@@ -203,7 +227,7 @@ class _HomePageState extends State<HomePage> {
                               },
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           InputSection(
                             title: 'Reason(s)',
                             child: DropdownMultiSelect(
@@ -215,7 +239,7 @@ class _HomePageState extends State<HomePage> {
                               },
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 8),
                           InputSection(
                             title: 'Timer Input',
                             child: TimerInput(
