@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DropdownMultiSelect extends StatefulWidget {
   final List<String> initialValues;
@@ -16,10 +17,18 @@ class DropdownMultiSelect extends StatefulWidget {
 
 class _DropdownMultiSelectState extends State<DropdownMultiSelect> {
   List<String> _selectedOptions = [];
+  List<String> _dropdownOptions = [
+    'Elevated Pleasure',
+    'Boredom',
+    'Sleep',
+    'Home from Work',
+    'Physical Discomfort',
+  ];
 
   @override
   void initState() {
     super.initState();
+    _fetchDropdownOptions();
     _selectedOptions = widget.initialValues;
   }
 
@@ -33,13 +42,29 @@ class _DropdownMultiSelectState extends State<DropdownMultiSelect> {
     }
   }
 
+  Future<void> _fetchDropdownOptions() async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('dropdown_options')
+          .orderBy('display_order')
+          .get();
+      List<String> options =
+          querySnapshot.docs.map((doc) => doc['option'] as String).toList();
+      setState(() {
+        _dropdownOptions = options;
+      });
+    } catch (e) {
+      print("Error fetching dropdown options: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18.0),
       child: DropdownButtonFormField<String>(
         value: _selectedOptions.isNotEmpty ? _selectedOptions.first : null,
-        items: ['Elevated Pleasure', 'Boredom']
+        items: _dropdownOptions
             .map((option) => DropdownMenuItem<String>(
                   value: option,
                   child: Text(option),
