@@ -3,6 +3,12 @@ import 'package:fl_chart/fl_chart.dart';
 import 'data_utils.dart';
 import 'package:intl/intl.dart';
 
+/* TODO:
+  Chart Ideas:
+    Rolling Usage Last 24H: For each record we calculate the usage for the last 24 hours and display tha value for the records timestamp
+
+    Previous Range Overlay: For each selection (let's say week) we show the cumulative usage per day (or rolling) for the curent week and the cumulative usage for the previous week overlayed in the background somehow (maybe different color or greyed out)
+*/
 class DataChart extends StatelessWidget {
   final String timeRange;
   final List<FlSpot> chartData;

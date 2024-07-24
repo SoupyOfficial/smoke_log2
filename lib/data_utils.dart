@@ -149,6 +149,26 @@ class DataUtils {
     }
   }
 
+  // Function to calculate rolling usage
+  List<Map<String, dynamic>> calculateRollingUsage(
+      List<QueryDocumentSnapshot> data, Duration window) {
+    List<Map<String, dynamic>> rollingUsage = [];
+    for (int i = 0; i < data.length; i++) {
+      DateTime currentTime = (data[i]['timestamp'] as Timestamp).toDate();
+      double usageSum = 0;
+      for (int j = i; j >= 0; j--) {
+        DateTime checkTime = (data[j]['timestamp'] as Timestamp).toDate();
+        if (currentTime.difference(checkTime) <= window) {
+          usageSum += data[j]['length'];
+        } else {
+          break;
+        }
+      }
+      rollingUsage.add({'timestamp': currentTime, 'rollingUsage': usageSum});
+    }
+    return rollingUsage;
+  }
+
   static String formatDate(double value, String range) {
     final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
     switch (range) {
