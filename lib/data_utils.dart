@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'app_config.dart';
 
 class DataUtils {
-  static var collectionName = kReleaseMode ? 'JacobLogs' : 'JacobLogsTest';
-
   static Future<List<Map<String, dynamic>>> fetchDataFromFirestore() async {
+    String collectionName = await AppConfig.getCollectionName();
+
     final QuerySnapshot snapshot =
         await FirebaseFirestore.instance.collection(collectionName).get();
     final data =
@@ -359,7 +359,9 @@ class DataUtils {
                 ),
               ),
               child: const Text('Confirm'),
-              onPressed: () {
+              onPressed: () async {
+                String collectionName = await AppConfig.getCollectionName();
+
                 // Update the record in Firebase
                 FirebaseFirestore.instance
                     .collection(collectionName)

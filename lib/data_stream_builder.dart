@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'app_config.dart';
 
 class DataStreamBuilder extends StatelessWidget {
   final Function(List<QueryDocumentSnapshot>) onData;
@@ -8,14 +9,25 @@ class DataStreamBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('JacobLogs').snapshots(),
+    return FutureBuilder<String>(
+      future: AppConfig.getCollectionName(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        var data = snapshot.data!.docs;
-        return onData(data);
+
+        String collectionName = snapshot.data!;
+        return StreamBuilder<QuerySnapshot>(
+          stream:
+              FirebaseFirestore.instance.collection(collectionName).snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            var data = snapshot.data!.docs;
+            return onData(data);
+          },
+        );
       },
     );
   }

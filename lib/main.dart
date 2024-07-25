@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'home_page.dart';
-import 'data_analysis_page.dart'; // Import the refactored DataAnalysisPage
+import 'data_analysis_page.dart';
+import 'app_config.dart';
+import 'package:flutter/foundation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Set the collection name
+  await AppConfig.setCollectionName(
+      kReleaseMode ? 'JacobLogs' : 'JacobLogsTest');
+
   runApp(const AppWrapper());
 }
 

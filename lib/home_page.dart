@@ -4,7 +4,7 @@ import 'input_section.dart';
 import 'segmented_input.dart';
 import 'dropdown_multi_select.dart';
 import 'timer_input.dart';
-import 'package:flutter/foundation.dart';
+import 'app_config.dart';
 import 'dart:async';
 
 class HomePage extends StatefulWidget {
@@ -24,7 +24,6 @@ class _HomePageState extends State<HomePage> {
   Duration totalLengthForToday = const Duration(seconds: 0);
   Duration timeSinceLastUse = const Duration(seconds: 0);
   Timer? _timer;
-  var collectionName = kReleaseMode ? 'JacobLogs' : 'JacobLogsTest';
 
   @override
   void initState() {
@@ -42,6 +41,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchData() async {
+    String collectionName = await AppConfig.getCollectionName();
+
     DateTime now = DateTime.now();
     DateTime date = DateTime(now.year, now.month, now.day);
     DateTime twentyFourHoursAgo = now.subtract(const Duration(hours: 24));
@@ -108,6 +109,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _submitData() async {
+    String collectionName = await AppConfig.getCollectionName();
+
     try {
       await FirebaseFirestore.instance.collection(collectionName).add({
         'moodRating': currentMood,
