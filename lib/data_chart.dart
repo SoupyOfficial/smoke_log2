@@ -11,12 +11,14 @@ import 'package:intl/intl.dart';
 */
 class DataChart extends StatelessWidget {
   final String timeRange;
+  final String chartType;
   final List<FlSpot> chartData;
   final double minY, maxY, minX, maxX;
 
   const DataChart({
     super.key,
     required this.timeRange,
+    required this.chartType,
     required this.chartData,
     required this.minY,
     required this.maxY,
@@ -109,39 +111,19 @@ class DataChart extends StatelessWidget {
             maxY: maxY,
             lineTouchData: LineTouchData(
               touchTooltipData: LineTouchTooltipData(
-                fitInsideVertically:
-                    true, // Ensure the tooltip fits inside the chart vertically
-                fitInsideHorizontally:
-                    true, // Ensure the tooltip fits inside the chart horizontally
                 getTooltipItems: (touchedSpots) {
                   return touchedSpots.map((touchedSpot) {
                     final date = DateTime.fromMillisecondsSinceEpoch(
                         touchedSpot.x.toInt());
-                    final dateFormat = DateFormat('MMMM dd');
+                    final dateFormat = DateFormat('MMMM dd, HH:mm');
                     final formattedDate = dateFormat.format(date);
-                    final inhalationLength = touchedSpot.y.toStringAsFixed(2);
+                    final value = touchedSpot.y.toStringAsFixed(2);
+                    final label = chartType == 'cumulative'
+                        ? 'Cumulative Usage'
+                        : 'Rolling 24h Usage';
                     return LineTooltipItem(
-                      '',
-                      TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurface), // Default style for the text
-                      children: [
-                        TextSpan(
-                          text: formattedDate,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                        TextSpan(
-                          text: DataUtils.getOrdinalSuffix(touchedSpot.x),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontFeatures: [FontFeature.superscripts()]),
-                        ),
-                        TextSpan(
-                          text: '\nLength: $inhalationLength',
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
+                      '$formattedDate\n$label: $value',
+                      TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     );
                   }).toList();
                 },

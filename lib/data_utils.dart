@@ -169,6 +169,28 @@ class DataUtils {
     return rollingUsage;
   }
 
+  static List<FlSpot> convertDataToRollingChartData(
+      List<Map<String, dynamic>> data) {
+    List<FlSpot> rollingChartData = [];
+    for (int i = 0; i < data.length; i++) {
+      var currentTimestamp = (data[i]['timestamp'] as Timestamp).toDate();
+      var rollingSum = 0.0;
+
+      for (int j = i; j >= 0; j--) {
+        var checkTimestamp = (data[j]['timestamp'] as Timestamp).toDate();
+        if (currentTimestamp.difference(checkTimestamp).inHours <= 24) {
+          rollingSum += data[j]['length'] as double;
+        } else {
+          break;
+        }
+      }
+
+      rollingChartData.add(FlSpot(
+          currentTimestamp.millisecondsSinceEpoch.toDouble(), rollingSum));
+    }
+    return rollingChartData;
+  }
+
   static String formatDate(double value, String range) {
     final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
     switch (range) {

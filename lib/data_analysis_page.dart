@@ -15,6 +15,7 @@ class DataAnalysisPage extends StatefulWidget {
 
 class _DataAnalysisPageState extends State<DataAnalysisPage> {
   String _selectedRange = 'week';
+  String _selectedChartType = 'cumulative';
 
   @override
   Widget build(BuildContext context) {
@@ -24,20 +25,47 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
         children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: DropdownButton<String>(
-              value: _selectedRange,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _selectedRange = newValue!;
-                });
-              },
-              items: <String>['week', 'month', '3 months', '6 months', 'year']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                DropdownButton<String>(
+                  value: _selectedRange,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedRange = newValue!;
+                    });
+                  },
+                  items: <String>[
+                    'week',
+                    'month',
+                    '3 months',
+                    '6 months',
+                    'year'
+                  ].map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
+                ),
+                DropdownButton<String>(
+                  value: _selectedChartType,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _selectedChartType = newValue!;
+                    });
+                  },
+                  items: <String>['cumulative', 'rolling']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value == 'cumulative'
+                          ? 'Cumulative Usage'
+                          : 'Rolling 24h Usage'),
+                    );
+                  }).toList(),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -50,7 +78,10 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                 var filteredData =
                     DataUtils.filterDataForRange(data, _selectedRange);
                 var sortedData = DataUtils.sortDataByTimestamp(filteredData);
-                var chartData = DataUtils.convertDataToChartData(sortedData);
+
+                var chartData = _selectedChartType == 'cumulative'
+                    ? DataUtils.convertDataToChartData(sortedData)
+                    : DataUtils.convertDataToRollingChartData(sortedData);
                 var tableData = DataUtils.convertDataToTableData(sortedData);
 
                 if (chartData.isEmpty) {
@@ -108,6 +139,7 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                           height: MediaQuery.of(context).size.height * 0.20,
                           child: DataChart(
                               timeRange: _selectedRange,
+                              chartType: _selectedChartType,
                               chartData: chartData,
                               minY: 0,
                               maxY: maxY,
