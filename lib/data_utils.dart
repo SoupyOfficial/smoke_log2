@@ -372,9 +372,19 @@ class DataUtils {
                   'length': double.parse(lengthController.text),
                 }).then((value) {
                   Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Record updated successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                 }).catchError((error) {
-                  // Handle the error
-                  print('Error updating record: $error');
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error updating record: $error'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
                 });
               },
             ),

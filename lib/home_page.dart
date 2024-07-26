@@ -5,6 +5,7 @@ import 'segmented_input.dart';
 import 'dropdown_multi_select.dart';
 import 'timer_input.dart';
 import 'custom_app_bar.dart';
+import 'manual_entry_page.dart';
 import 'app_config.dart';
 import 'dart:async';
 
@@ -48,6 +49,12 @@ class _HomePageState extends State<HomePage> {
     await AppConfig.swapUser();
     await _updateCurrentUser();
     await _fetchData(); // Refresh the data for the new user
+  }
+
+  void _navigateToManualEntry() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const ManualEntryPage()),
+    );
   }
 
   @override
@@ -302,6 +309,11 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _navigateToManualEntry,
+        tooltip: 'Manual Entry',
+        child: const Icon(Icons.add),
       ),
     );
   }
