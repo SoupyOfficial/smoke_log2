@@ -4,6 +4,7 @@ import 'input_section.dart';
 import 'segmented_input.dart';
 import 'dropdown_multi_select.dart';
 import 'timer_input.dart';
+import 'custom_app_bar.dart';
 import 'app_config.dart';
 import 'dart:async';
 
@@ -24,14 +25,29 @@ class _HomePageState extends State<HomePage> {
   Duration totalLengthForToday = const Duration(seconds: 0);
   Duration timeSinceLastUse = const Duration(seconds: 0);
   Timer? _timer;
+  String _currentUser = 'Jacob';
 
   @override
   void initState() {
     super.initState();
+    _updateCurrentUser();
     _fetchData();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _updateTimeSinceLastUse();
     });
+  }
+
+  Future<void> _updateCurrentUser() async {
+    String collectionName = await AppConfig.getCollectionName();
+    setState(() {
+      _currentUser = collectionName.startsWith('Jacob') ? 'Jacob' : 'Ashley';
+    });
+  }
+
+  Future<void> _swapUser() async {
+    await AppConfig.swapUser();
+    await _updateCurrentUser();
+    await _fetchData(); // Refresh the data for the new user
   }
 
   @override
@@ -158,9 +174,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Welcome Jacob'),
-        centerTitle: true,
+      appBar: CustomAppBar(
+        title: 'Welcome $_currentUser',
+        onSwapUser: _swapUser,
       ),
       body: Stack(
         children: [

@@ -12,10 +12,11 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Set the collection name
-  await AppConfig.setCollectionName(
-      kReleaseMode ? 'JacobLogs' : 'JacobLogsTest');
-
+  // Set the initial collection name if not already set
+  String collectionName = await AppConfig.getCollectionName();
+  if (collectionName.isEmpty) {
+    await AppConfig.setCollectionName('JacobLogs');
+  }
   runApp(const AppWrapper());
 }
 

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'data_analysis_app_bar.dart';
+import 'custom_app_bar.dart';
+import 'app_config.dart';
 import 'data_chart.dart';
 import 'data_stream_builder.dart';
 import 'data_table_widget.dart';
@@ -16,11 +17,34 @@ class DataAnalysisPage extends StatefulWidget {
 class _DataAnalysisPageState extends State<DataAnalysisPage> {
   String _selectedRange = 'week';
   String _selectedChartType = 'cumulative';
+  String _currentUser = 'Jacob';
+
+  @override
+  void initState() {
+    super.initState();
+    _updateCurrentUser();
+  }
+
+  Future<void> _updateCurrentUser() async {
+    String collectionName = await AppConfig.getCollectionName();
+    setState(() {
+      _currentUser = collectionName.startsWith('Jacob') ? 'Jacob' : 'Ashley';
+    });
+  }
+
+  Future<void> _swapUser() async {
+    await AppConfig.swapUser();
+    await _updateCurrentUser();
+    setState(() {}); // Trigger a rebuild to refresh the data
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const DataAnalysisAppBar(),
+      appBar: CustomAppBar(
+        title: '$_currentUser\'s Data Analysis',
+        onSwapUser: _swapUser,
+      ),
       body: Column(
         children: [
           Padding(
