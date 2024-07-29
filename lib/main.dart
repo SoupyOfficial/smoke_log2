@@ -4,7 +4,6 @@ import 'firebase_options.dart';
 import 'home_page.dart';
 import 'data_analysis_page.dart';
 import 'app_config.dart';
-import 'package:flutter/foundation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,45 +58,60 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Smoke Log 2.0',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.dark(
-          primary: Colors.blue[900]!,
-          secondary: Colors.blueAccent[700]!,
-          surface: Colors.grey[900]!,
-          onPrimary: Colors.white,
-          onSecondary: Colors.white70,
-          onSurface: Colors.white70,
-          error: Colors.red,
-          onError: Colors.white,
-        ),
-        primaryColor: Colors.blueGrey[900],
-        hintColor: Colors.blueAccent[700],
-        scaffoldBackgroundColor: Colors.black,
-        cardColor: Colors.grey[900],
-        appBarTheme: AppBarTheme(
-          color: Colors.blueGrey[900],
-        ),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white70),
-          displayLarge: TextStyle(color: Colors.white),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.blueGrey[800],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide.none,
-          ),
-        ),
-      ),
-      themeMode: ThemeMode.dark,
-      home: const MyHomePage(),
-    );
+    return FutureBuilder<bool>(
+        future: AppConfig.isAshley(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const MaterialApp(
+                home: Scaffold(body: CircularProgressIndicator()));
+          }
+
+          bool isAshley = snapshot.data ?? false;
+
+          return MaterialApp(
+            title: 'Smoke Log 2.0',
+            theme: ThemeData.light(),
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              colorScheme: ColorScheme.dark(
+                primary: isAshley ? Colors.purple[900]! : Colors.blue[900]!,
+                secondary: isAshley
+                    ? Colors.purpleAccent[700]!
+                    : Colors.blueAccent[700]!,
+                surface: isAshley ? Colors.deepPurple[900]! : Colors.grey[900]!,
+                onPrimary: Colors.white,
+                onSecondary: Colors.white70,
+                onSurface: Colors.white70,
+                error: Colors.red,
+                onError: Colors.white,
+              ),
+              primaryColor:
+                  isAshley ? Colors.deepPurple[900] : Colors.blueGrey[900],
+              hintColor:
+                  isAshley ? Colors.purpleAccent[700] : Colors.blueAccent[700],
+              scaffoldBackgroundColor: isAshley ? Colors.black87 : Colors.black,
+              cardColor: isAshley ? Colors.deepPurple[900] : Colors.grey[900],
+              appBarTheme: AppBarTheme(
+                color: isAshley ? Colors.deepPurple[900] : Colors.blueGrey[900],
+              ),
+              textTheme: const TextTheme(
+                bodyLarge: TextStyle(color: Colors.white),
+                bodyMedium: TextStyle(color: Colors.white70),
+                displayLarge: TextStyle(color: Colors.white),
+              ),
+              inputDecorationTheme: InputDecorationTheme(
+                filled: true,
+                fillColor: Colors.blueGrey[800],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            themeMode: ThemeMode.dark,
+            home: const MyHomePage(),
+          );
+        });
   }
 }
 

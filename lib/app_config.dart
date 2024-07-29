@@ -22,4 +22,9 @@ class AppConfig {
         : _jacobCollection;
     await setCollectionName(newCollection);
   }
+
+  static Future<bool> isAshley() async {
+    String collectionName = await getCollectionName();
+    return collectionName.contains('Ashley');
+  }
 }

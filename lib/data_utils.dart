@@ -10,8 +10,11 @@ class DataUtils {
 
     final QuerySnapshot snapshot =
         await FirebaseFirestore.instance.collection(collectionName).get();
-    final data =
-        snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+    final data = snapshot.docs.map((doc) {
+      final docData = doc.data() as Map<String, dynamic>;
+      docData['id'] = doc.id;
+      return docData;
+    }).toList();
     return data;
   }
 
@@ -23,15 +26,15 @@ class DataUtils {
       final timestamp = DateTime.fromMillisecondsSinceEpoch(entry['timestamp']);
       switch (range) {
         case 'week':
-          return timestamp.isAfter(now.subtract(Duration(days: 7)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 7)));
         case 'month':
-          return timestamp.isAfter(now.subtract(Duration(days: 30)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 30)));
         case '3 months':
-          return timestamp.isAfter(now.subtract(Duration(days: 90)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 90)));
         case '6 months':
-          return timestamp.isAfter(now.subtract(Duration(days: 180)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 180)));
         case 'year':
-          return timestamp.isAfter(now.subtract(Duration(days: 365)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 365)));
         default:
           return false;
       }
@@ -49,15 +52,15 @@ class DataUtils {
       final timestamp = (entry['timestamp'] as Timestamp).toDate();
       switch (range) {
         case 'week':
-          return timestamp.isAfter(now.subtract(Duration(days: 7)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 7)));
         case 'month':
-          return timestamp.isAfter(now.subtract(Duration(days: 30)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 30)));
         case '3 months':
-          return timestamp.isAfter(now.subtract(Duration(days: 90)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 90)));
         case '6 months':
-          return timestamp.isAfter(now.subtract(Duration(days: 180)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 180)));
         case 'year':
-          return timestamp.isAfter(now.subtract(Duration(days: 365)));
+          return timestamp.isAfter(now.subtract(const Duration(days: 365)));
         default:
           return false;
       }
@@ -95,7 +98,8 @@ class DataUtils {
 
     for (int i = 0; i < data.length; i++) {
       DateTime currentTimestamp = DateTime.parse(data[i]['timestamp']);
-      DateTime startTimestamp = currentTimestamp.subtract(Duration(hours: 24));
+      DateTime startTimestamp =
+          currentTimestamp.subtract(const Duration(hours: 24));
 
       double rollingSum = 0;
 
@@ -345,6 +349,36 @@ class DataUtils {
           ),
           actions: [
             TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                String collectionName = await AppConfig.getCollectionName();
+                await FirebaseFirestore.instance
+                    .collection(collectionName)
+                    .doc(rowData['id'])
+                    .delete()
+                    .then((value) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Record deleted successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }).catchError((error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error deleting record: $error'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                });
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Record deleted successfully')),
+                );
+              },
+            ),
+            TextButton(
               child: const Text('Cancel', style: TextStyle(color: Colors.red)),
               onPressed: () {
                 Navigator.of(context).pop();
@@ -362,10 +396,18 @@ class DataUtils {
               onPressed: () async {
                 String collectionName = await AppConfig.getCollectionName();
 
+                // Ensure the id is available
+                if (rowData['id'] == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Error: Record ID not found')),
+                  );
+                  return;
+                }
+
                 // Update the record in Firebase
                 FirebaseFirestore.instance
                     .collection(collectionName)
-                    .doc(rowData['id'].toString())
+                    .doc(rowData['id'])
                     .update({
                   'moodRating': int.parse(moodController.text),
                   'physicalRating': int.parse(physicalController.text),
