@@ -60,7 +60,7 @@ class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
 class MyApp extends StatefulWidget {
   final Function onReload;
 
-  MyApp({required this.onReload, super.key});
+  const MyApp({required this.onReload, super.key});
 
   @override
   _MyAppState createState() => _MyAppState();
