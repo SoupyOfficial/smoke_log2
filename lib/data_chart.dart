@@ -30,7 +30,7 @@ class DataChart extends StatelessWidget {
   Widget build(BuildContext context) {
     return FutureBuilder<List<FlSpot>>(
       future: DataUtils.fetchDataForRange(
-          timeRange), // Fetch data based on the time range
+          timeRange, chartType), // Fetch data based on the time range
       builder: (context, snapshot) {
         return Padding(
           padding: const EdgeInsets.all(8.0),
@@ -118,9 +118,18 @@ class DataChart extends StatelessWidget {
                     final dateFormat = DateFormat('MMMM dd, HH:mm');
                     final formattedDate = dateFormat.format(date);
                     final value = touchedSpot.y.toStringAsFixed(2);
-                    final label = chartType == 'cumulative'
-                        ? 'Cumulative Usage'
-                        : 'Rolling 24h Usage';
+                    String label = '';
+
+                    switch (chartType) {
+                      case 'cumulative':
+                        label = 'Cumulative Usage';
+                      case 'rolling_24h':
+                        label = 'Rolling 24h Usage';
+                      case 'rolling_30d':
+                        label = 'Rolling 30d Usage';
+                      case 'rolling_90d':
+                        label = 'Rolling 90d Usage';
+                    }
                     return LineTooltipItem(
                       '$formattedDate\n$label: $value',
                       TextStyle(color: Theme.of(context).colorScheme.onSurface),

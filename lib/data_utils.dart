@@ -18,25 +18,74 @@ class DataUtils {
     return data;
   }
 
-  static Future<List<FlSpot>> fetchDataForRange(String range) async {
+  static Future<List<FlSpot>> fetchDataForRange(
+      String range, String chartType) async {
     // Fetch data from Firestore and filter based on the selected range
     final data = await fetchDataFromFirestore();
     final now = DateTime.now();
     final filteredData = data.where((entry) {
       final timestamp = DateTime.fromMillisecondsSinceEpoch(entry['timestamp']);
-      switch (range) {
-        case 'week':
-          return timestamp.isAfter(now.subtract(const Duration(days: 7)));
-        case 'month':
-          return timestamp.isAfter(now.subtract(const Duration(days: 30)));
-        case '3 months':
-          return timestamp.isAfter(now.subtract(const Duration(days: 90)));
-        case '6 months':
-          return timestamp.isAfter(now.subtract(const Duration(days: 180)));
-        case 'year':
-          return timestamp.isAfter(now.subtract(const Duration(days: 365)));
+      switch (chartType) {
+        case 'rolling_24h':
+          switch (range) {
+            case 'week':
+              return timestamp.isAfter(now.subtract(const Duration(days: 8)));
+            case 'month':
+              return timestamp.isAfter(now.subtract(const Duration(days: 31)));
+            case '3 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 91)));
+            case '6 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 181)));
+            case 'year':
+              return timestamp.isAfter(now.subtract(const Duration(days: 366)));
+            default:
+              return false;
+          }
+        case 'rolling_30d':
+          switch (range) {
+            case 'week':
+              return timestamp.isAfter(now.subtract(const Duration(days: 37)));
+            case 'month':
+              return timestamp.isAfter(now.subtract(const Duration(days: 60)));
+            case '3 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 120)));
+            case '6 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 210)));
+            case 'year':
+              return timestamp.isAfter(now.subtract(const Duration(days: 395)));
+            default:
+              return false;
+          }
+        case 'rolling_90d':
+          switch (range) {
+            case 'week':
+              return timestamp.isAfter(now.subtract(const Duration(days: 97)));
+            case 'month':
+              return timestamp.isAfter(now.subtract(const Duration(days: 120)));
+            case '3 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 180)));
+            case '6 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 270)));
+            case 'year':
+              return timestamp.isAfter(now.subtract(const Duration(days: 455)));
+            default:
+              return false;
+          }
         default:
-          return false;
+          switch (range) {
+            case 'week':
+              return timestamp.isAfter(now.subtract(const Duration(days: 7)));
+            case 'month':
+              return timestamp.isAfter(now.subtract(const Duration(days: 30)));
+            case '3 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 90)));
+            case '6 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 180)));
+            case 'year':
+              return timestamp.isAfter(now.subtract(const Duration(days: 365)));
+            default:
+              return false;
+          }
       }
     }).toList();
 
@@ -174,7 +223,7 @@ class DataUtils {
   }
 
   static List<FlSpot> convertDataToRollingChartData(
-      List<Map<String, dynamic>> data) {
+      List<Map<String, dynamic>> data, Duration window) {
     List<FlSpot> rollingChartData = [];
     for (int i = 0; i < data.length; i++) {
       var currentTimestamp = (data[i]['timestamp'] as Timestamp).toDate();
@@ -182,7 +231,7 @@ class DataUtils {
 
       for (int j = i; j >= 0; j--) {
         var checkTimestamp = (data[j]['timestamp'] as Timestamp).toDate();
-        if (currentTimestamp.difference(checkTimestamp).inHours <= 24) {
+        if (currentTimestamp.difference(checkTimestamp) <= window) {
           rollingSum += data[j]['length'] as double;
         } else {
           break;

@@ -40,6 +40,21 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
     setState(() {}); // Trigger a rebuild to refresh the data
   }
 
+  String _getUsageText(String value) {
+    switch (value) {
+      case 'cumulative':
+        return 'Cumulative Usage';
+      case 'rolling_24h':
+        return 'Rolling 24h Usage';
+      case 'rolling_30d':
+        return 'Rolling 30 Days Usage';
+      case 'rolling_90d':
+        return 'Rolling 90 Days Usage';
+      default:
+        return 'Unknown Usage';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,13 +97,15 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                       _selectedChartType = newValue!;
                     });
                   },
-                  items: <String>['cumulative', 'rolling']
-                      .map<DropdownMenuItem<String>>((String value) {
+                  items: <String>[
+                    'cumulative',
+                    'rolling_24h',
+                    'rolling_30d',
+                    'rolling_90d'
+                  ].map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value == 'cumulative'
-                          ? 'Cumulative Usage'
-                          : 'Rolling 24h Usage'),
+                      child: Text(_getUsageText(value)),
                     );
                   }).toList(),
                 ),
@@ -106,9 +123,21 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                     DataUtils.filterDataForRange(data, _selectedRange);
                 var sortedData = DataUtils.sortDataByTimestamp(filteredData);
 
-                var chartData = _selectedChartType == 'cumulative'
-                    ? DataUtils.convertDataToChartData(sortedData)
-                    : DataUtils.convertDataToRollingChartData(sortedData);
+                var chartData;
+
+                switch (_selectedChartType) {
+                  case 'cumulative':
+                    chartData = DataUtils.convertDataToChartData(sortedData);
+                  case 'rolling_24h':
+                    chartData = DataUtils.convertDataToRollingChartData(
+                        sortedData, const Duration(days: 1));
+                  case 'rolling_30d':
+                    chartData = DataUtils.convertDataToRollingChartData(
+                        sortedData, const Duration(days: 30));
+                  case 'rolling_90d':
+                    chartData = DataUtils.convertDataToRollingChartData(
+                        sortedData, const Duration(days: 90));
+                }
                 var tableData = DataUtils.convertDataToTableData(sortedData);
 
                 if (chartData.isEmpty) {
