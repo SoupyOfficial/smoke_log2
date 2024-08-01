@@ -5,7 +5,7 @@ import 'app_config.dart';
 class DataStreamBuilder extends StatefulWidget {
   final Function(List<QueryDocumentSnapshot>) onData;
 
-  const DataStreamBuilder({Key? key, required this.onData}) : super(key: key);
+  const DataStreamBuilder({super.key, required this.onData});
 
   @override
   _DataStreamBuilderState createState() => _DataStreamBuilderState();

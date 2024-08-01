@@ -148,10 +148,6 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                 double minY = chartData
                     .map((spot) => spot.y)
                     .reduce((a, b) => a < b ? a : b);
-                double possibleMaxY = chartData
-                        .map((spot) => spot.y)
-                        .reduce((a, b) => a > b ? a : b) +
-                    10;
                 double actualMaxY = chartData
                     .map((spot) => spot.y)
                     .reduce((a, b) => a > b ? a : b);
@@ -183,9 +179,6 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                         .subtract(const Duration(seconds: 1));
                 double maxX =
                     adjustedLastDate.millisecondsSinceEpoch.toDouble();
-
-                print('MinY: ' + minY.toString());
-                print('MaxY: ' + maxY.toString());
 
                 return Column(
                   children: [

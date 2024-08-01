@@ -279,23 +279,23 @@ class DataUtils {
 
     switch (selectedRange) {
       case 'week':
-        startDate = endDate.subtract(Duration(days: 7));
+        startDate = endDate.subtract(const Duration(days: 7));
         days = 7;
         break;
       case 'month':
-        startDate = endDate.subtract(Duration(days: 30));
+        startDate = endDate.subtract(const Duration(days: 30));
         days = 30;
         break;
       case '3 months':
-        startDate = endDate.subtract(Duration(days: 90));
+        startDate = endDate.subtract(const Duration(days: 90));
         days = 90;
         break;
       case '6 months':
-        startDate = endDate.subtract(Duration(days: 180));
+        startDate = endDate.subtract(const Duration(days: 180));
         days = 180;
         break;
       case '1 year':
-        startDate = endDate.subtract(Duration(days: 365));
+        startDate = endDate.subtract(const Duration(days: 365));
         days = 365;
         break;
       default:
