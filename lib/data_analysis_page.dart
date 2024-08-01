@@ -152,11 +152,21 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                         .map((spot) => spot.y)
                         .reduce((a, b) => a > b ? a : b) +
                     10;
+                double actualMaxY = chartData
+                    .map((spot) => spot.y)
+                    .reduce((a, b) => a > b ? a : b);
                 double avgY =
                     chartData.map((spot) => spot.y).reduce((a, b) => a + b) /
                         chartData.length;
-                double maxY = 2 * avgY > possibleMaxY ? 2 * avgY : possibleMaxY;
-                minY = minY.floorToDouble();
+                double possibleMaxY1 = actualMaxY + 10;
+                double possibleMaxY2 = 2 * avgY;
+                double maxY =
+                    (possibleMaxY1 > actualMaxY && possibleMaxY2 > actualMaxY)
+                        ? (possibleMaxY1 < possibleMaxY2
+                            ? possibleMaxY1
+                            : possibleMaxY2)
+                        : actualMaxY + 10;
+                minY = (minY - 10).floorToDouble();
                 maxY = maxY.ceilToDouble();
                 DateTime firstDate = DateTime.fromMillisecondsSinceEpoch(
                     chartData.first.x.toInt());
@@ -173,6 +183,9 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                         .subtract(const Duration(seconds: 1));
                 double maxX =
                     adjustedLastDate.millisecondsSinceEpoch.toDouble();
+
+                print('MinY: ' + minY.toString());
+                print('MaxY: ' + maxY.toString());
 
                 return Column(
                   children: [
@@ -197,7 +210,8 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                               timeRange: _selectedRange,
                               chartType: _selectedChartType,
                               chartData: chartData,
-                              minY: 0,
+                              minY:
+                                  _selectedChartType == 'cumulative' ? 0 : minY,
                               maxY: maxY,
                               minX: minX,
                               maxX: maxX),

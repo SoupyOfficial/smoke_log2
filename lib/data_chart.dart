@@ -26,6 +26,11 @@ class DataChart extends StatelessWidget {
     required this.maxX,
   });
 
+  double calculateInterval(double minY, double maxY) {
+    double range = maxY - minY;
+    return range / 6; // Divide the range by 6 to get at most 6 titles
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<FlSpot>>(
@@ -76,20 +81,21 @@ class DataChart extends StatelessWidget {
               leftTitles: AxisTitles(
                 sideTitles: SideTitles(
                   showTitles: true,
-                  reservedSize: 25,
+                  reservedSize: 40,
                   getTitlesWidget: (value, meta) {
                     if ((value - minY).abs() < 5 || (value - maxY).abs() < 5) {
                       return Container();
                     }
                     return Transform.translate(
-                      offset: const Offset(0, 0),
+                      offset: const Offset(-10, 0),
                       child: Text(
                         value.toStringAsFixed(0),
                         style: const TextStyle(fontSize: 10),
                       ),
                     );
                   },
-                  interval: 10, // Set a fixed interval
+                  interval:
+                      calculateInterval(minY, maxY), // Set dynamic interval
                 ),
               ),
               rightTitles: const AxisTitles(
@@ -103,8 +109,8 @@ class DataChart extends StatelessWidget {
                 ),
               ),
             ),
-            borderData: FlBorderData(show: true),
-            gridData: const FlGridData(show: false),
+            borderData: FlBorderData(show: false),
+            gridData: const FlGridData(show: true),
             minX: minX,
             maxX: maxX,
             minY: minY,
