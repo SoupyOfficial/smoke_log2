@@ -47,19 +47,38 @@ class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
     }
   }
 
+  void _reload() {
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const MyApp();
+    return MyApp(onReload: _reload);
   }
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  final Function onReload;
+
+  MyApp({required this.onReload, super.key});
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late Future<bool> _isAshleyFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _isAshleyFuture = AppConfig.isAshley();
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-        future: AppConfig.isAshley(),
+        future: _isAshleyFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const MaterialApp(
@@ -70,7 +89,7 @@ class MyApp extends StatelessWidget {
 
           return MaterialApp(
             title: 'Smoke Log 2.0',
-            theme: ThemeData.light(),
+            theme: ThemeData.dark(),
             darkTheme: ThemeData(
               brightness: Brightness.dark,
               colorScheme: ColorScheme.dark(
@@ -109,14 +128,18 @@ class MyApp extends StatelessWidget {
               ),
             ),
             themeMode: ThemeMode.dark,
-            home: const MyHomePage(),
+            home: MyHomePage(
+              onReload: widget.onReload,
+            ),
           );
         });
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+  final Function onReload;
+
+  MyHomePage({required this.onReload, super.key});
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -125,10 +148,16 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedIndex = 0;
 
-  static final List<Widget> _widgetOptions = <Widget>[
-    const HomePage(),
-    const DataAnalysisPage(),
-  ];
+  late final List<Widget> _widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _widgetOptions = <Widget>[
+      HomePage(onReload: widget.onReload),
+      DataAnalysisPage(onReload: widget.onReload),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {

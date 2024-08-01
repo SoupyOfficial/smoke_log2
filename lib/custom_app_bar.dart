@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final VoidCallback onSwapUser;
+  final Function onReload;
 
   const CustomAppBar({
     Key? key,
     required this.title,
     required this.onSwapUser,
+    required this.onReload,
   }) : super(key: key);
 
   @override
@@ -16,7 +18,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Text(title),
       actions: [
         TextButton(
-          onPressed: onSwapUser,
+          onPressed: () => {onSwapUser(), onReload()},
           child: const Text(
             'Swap User',
             style: TextStyle(color: Colors.white),

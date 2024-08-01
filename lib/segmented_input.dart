@@ -64,8 +64,8 @@ class _SegmentedInputState extends State<SegmentedInput> {
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero, // Remove default padding
                     backgroundColor: isSelected
-                        ? Theme.of(context).colorScheme.onSecondary
-                        : null,
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).colorScheme.onSurface,
                     textStyle: TextStyle(
                       color: isSelected
                           ? Theme.of(context).colorScheme.onPrimary

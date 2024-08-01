@@ -15,12 +15,15 @@ class AppConfig {
     return prefs.getString(_collectionNameKey) ?? _jacobCollection;
   }
 
-  static Future<void> swapUser() async {
+  static Future<void> swapUser(Function? reload) async {
     String currentCollection = await getCollectionName();
     String newCollection = currentCollection == _jacobCollection
         ? _ashleyCollection
         : _jacobCollection;
     await setCollectionName(newCollection);
+    if (reload != null) {
+      reload();
+    }
   }
 
   static Future<bool> isAshley() async {

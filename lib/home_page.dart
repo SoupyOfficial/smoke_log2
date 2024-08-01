@@ -10,7 +10,9 @@ import 'app_config.dart';
 import 'dart:async';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Function onReload;
+
+  const HomePage({required this.onReload, super.key});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -46,7 +48,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _swapUser() async {
-    await AppConfig.swapUser();
+    await AppConfig.swapUser(widget.onReload);
     await _updateCurrentUser();
     await _fetchData(); // Refresh the data for the new user
   }
@@ -184,6 +186,7 @@ class _HomePageState extends State<HomePage> {
       appBar: CustomAppBar(
         title: 'Welcome $_currentUser',
         onSwapUser: _swapUser,
+        onReload: widget.onReload,
       ),
       body: Stack(
         children: [

@@ -8,7 +8,9 @@ import 'data_table_widget.dart';
 import 'data_utils.dart';
 
 class DataAnalysisPage extends StatefulWidget {
-  const DataAnalysisPage({super.key});
+  final Function onReload;
+
+  const DataAnalysisPage({required this.onReload, super.key});
 
   @override
   _DataAnalysisPageState createState() => _DataAnalysisPageState();
@@ -33,7 +35,7 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
   }
 
   Future<void> _swapUser() async {
-    await AppConfig.swapUser();
+    await AppConfig.swapUser(widget.onReload);
     await _updateCurrentUser();
     setState(() {}); // Trigger a rebuild to refresh the data
   }
@@ -44,6 +46,7 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
       appBar: CustomAppBar(
         title: '$_currentUser\'s Data Analysis',
         onSwapUser: _swapUser,
+        onReload: widget.onReload,
       ),
       body: Column(
         children: [
