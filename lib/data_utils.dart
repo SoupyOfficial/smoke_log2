@@ -95,23 +95,71 @@ class DataUtils {
   }
 
   static List<Map<String, dynamic>> filterDataForRange(
-      List<Map<String, dynamic>> data, String range) {
+      List<Map<String, dynamic>> data, String range, String chartType) {
     final now = DateTime.now();
     return data.where((entry) {
       final timestamp = (entry['timestamp'] as Timestamp).toDate();
-      switch (range) {
-        case 'week':
-          return timestamp.isAfter(now.subtract(const Duration(days: 7)));
-        case 'month':
-          return timestamp.isAfter(now.subtract(const Duration(days: 30)));
-        case '3 months':
-          return timestamp.isAfter(now.subtract(const Duration(days: 90)));
-        case '6 months':
-          return timestamp.isAfter(now.subtract(const Duration(days: 180)));
-        case 'year':
-          return timestamp.isAfter(now.subtract(const Duration(days: 365)));
+      switch (chartType) {
+        case 'rolling_24h':
+          switch (range) {
+            case 'week':
+              return timestamp.isAfter(now.subtract(const Duration(days: 8)));
+            case 'month':
+              return timestamp.isAfter(now.subtract(const Duration(days: 31)));
+            case '3 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 91)));
+            case '6 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 181)));
+            case 'year':
+              return timestamp.isAfter(now.subtract(const Duration(days: 366)));
+            default:
+              return false;
+          }
+        case 'rolling_30d':
+          switch (range) {
+            case 'week':
+              return timestamp.isAfter(now.subtract(const Duration(days: 37)));
+            case 'month':
+              return timestamp.isAfter(now.subtract(const Duration(days: 60)));
+            case '3 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 120)));
+            case '6 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 210)));
+            case 'year':
+              return timestamp.isAfter(now.subtract(const Duration(days: 395)));
+            default:
+              return false;
+          }
+        case 'rolling_90d':
+          switch (range) {
+            case 'week':
+              return timestamp.isAfter(now.subtract(const Duration(days: 97)));
+            case 'month':
+              return timestamp.isAfter(now.subtract(const Duration(days: 120)));
+            case '3 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 180)));
+            case '6 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 270)));
+            case 'year':
+              return timestamp.isAfter(now.subtract(const Duration(days: 455)));
+            default:
+              return false;
+          }
         default:
-          return false;
+          switch (range) {
+            case 'week':
+              return timestamp.isAfter(now.subtract(const Duration(days: 7)));
+            case 'month':
+              return timestamp.isAfter(now.subtract(const Duration(days: 30)));
+            case '3 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 90)));
+            case '6 months':
+              return timestamp.isAfter(now.subtract(const Duration(days: 180)));
+            case 'year':
+              return timestamp.isAfter(now.subtract(const Duration(days: 365)));
+            default:
+              return false;
+          }
       }
     }).toList();
   }
@@ -223,24 +271,67 @@ class DataUtils {
   }
 
   static List<FlSpot> convertDataToRollingChartData(
-      List<Map<String, dynamic>> data, Duration window) {
+      List<Map<String, dynamic>> data, String selectedRange, Duration window) {
     List<FlSpot> rollingChartData = [];
-    for (int i = 0; i < data.length; i++) {
-      var currentTimestamp = (data[i]['timestamp'] as Timestamp).toDate();
+    DateTime endDate = DateTime.now();
+    DateTime startDate;
+    int days = 7;
+
+    switch (selectedRange) {
+      case 'week':
+        startDate = endDate.subtract(Duration(days: 7));
+        days = 7;
+        break;
+      case 'month':
+        startDate = endDate.subtract(Duration(days: 30));
+        days = 30;
+        break;
+      case '3 months':
+        startDate = endDate.subtract(Duration(days: 90));
+        days = 90;
+        break;
+      case '6 months':
+        startDate = endDate.subtract(Duration(days: 180));
+        days = 180;
+        break;
+      case '1 year':
+        startDate = endDate.subtract(Duration(days: 365));
+        days = 365;
+        break;
+      default:
+        throw ArgumentError('Invalid range selected');
+    }
+
+    // Filter data based on the selected range
+    List<Map<String, dynamic>> filteredData = data.where((entry) {
+      var entryDate = (entry['timestamp'] as Timestamp).toDate();
+      return entryDate.isAfter(startDate.subtract(window)) &&
+          entryDate.isBefore(endDate);
+    }).toList();
+
+    // Calculate rolling usage
+    for (int i = 0; i < filteredData.length; i++) {
+      var currentTimestamp =
+          (filteredData[i]['timestamp'] as Timestamp).toDate();
       var rollingSum = 0.0;
 
       for (int j = i; j >= 0; j--) {
-        var checkTimestamp = (data[j]['timestamp'] as Timestamp).toDate();
+        var checkTimestamp =
+            (filteredData[j]['timestamp'] as Timestamp).toDate();
         if (currentTimestamp.difference(checkTimestamp) <= window) {
-          rollingSum += data[j]['length'] as double;
+          rollingSum += filteredData[j]['length'] as double;
         } else {
           break;
         }
       }
 
-      rollingChartData.add(FlSpot(
-          currentTimestamp.millisecondsSinceEpoch.toDouble(), rollingSum));
+      // Only add data points within the selected range
+      if (currentTimestamp.isAfter(endDate.subtract(Duration(days: days)))) {
+        rollingChartData.add(FlSpot(
+            currentTimestamp.millisecondsSinceEpoch.toDouble(), rollingSum));
+      }
     }
+
     return rollingChartData;
   }
 

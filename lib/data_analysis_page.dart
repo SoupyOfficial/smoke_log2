@@ -119,8 +119,8 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                 var data = snapshotDocs
                     .map((doc) => doc.data() as Map<String, dynamic>)
                     .toList();
-                var filteredData =
-                    DataUtils.filterDataForRange(data, _selectedRange);
+                var filteredData = DataUtils.filterDataForRange(
+                    data, _selectedRange, _selectedChartType);
                 var sortedData = DataUtils.sortDataByTimestamp(filteredData);
 
                 var chartData;
@@ -130,13 +130,13 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                     chartData = DataUtils.convertDataToChartData(sortedData);
                   case 'rolling_24h':
                     chartData = DataUtils.convertDataToRollingChartData(
-                        sortedData, const Duration(days: 1));
+                        sortedData, _selectedRange, const Duration(days: 1));
                   case 'rolling_30d':
                     chartData = DataUtils.convertDataToRollingChartData(
-                        sortedData, const Duration(days: 30));
+                        sortedData, _selectedRange, const Duration(days: 30));
                   case 'rolling_90d':
                     chartData = DataUtils.convertDataToRollingChartData(
-                        sortedData, const Duration(days: 90));
+                        sortedData, _selectedRange, const Duration(days: 90));
                 }
                 var tableData = DataUtils.convertDataToTableData(sortedData);
 
