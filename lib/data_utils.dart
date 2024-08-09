@@ -492,6 +492,7 @@ class DataUtils {
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
               onPressed: () async {
                 String collectionName = await AppConfig.getCollectionName();
+
                 await FirebaseFirestore.instance
                     .collection(collectionName)
                     .doc(rowData['id'])
@@ -512,7 +513,7 @@ class DataUtils {
                     ),
                   );
                 });
-                Navigator.of(context).pop();
+                // ignore: use_build_context_synchronously
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Record deleted successfully')),
                 );
@@ -536,16 +537,8 @@ class DataUtils {
               onPressed: () async {
                 String collectionName = await AppConfig.getCollectionName();
 
-                // Ensure the id is available
-                if (rowData['id'] == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Error: Record ID not found')),
-                  );
-                  return;
-                }
-
                 // Update the record in Firebase
-                FirebaseFirestore.instance
+                await FirebaseFirestore.instance
                     .collection(collectionName)
                     .doc(rowData['id'])
                     .update({

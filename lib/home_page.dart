@@ -15,6 +15,7 @@ class HomePage extends StatefulWidget {
   const HomePage({required this.onReload, super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _HomePageState createState() => _HomePageState();
 }
 
@@ -155,7 +156,7 @@ class _HomePageState extends State<HomePage> {
       });
     }
 
-    // Clear the message and reset input fields after 5 seconds
+    // Clear the message and reset input fields after 2 seconds
     await Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         submissionMessage = '';

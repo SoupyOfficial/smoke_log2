@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 
 class TimerInput extends StatefulWidget {
@@ -37,7 +39,7 @@ class _TimerInputState extends State<TimerInput> {
   void _startTimer() {
     setState(() {
       _isPressed = true;
-      _duration = const Duration(seconds: 0);
+      _duration = const Duration(milliseconds: 500);
     });
 
     Future.doWhile(() async {

@@ -31,8 +31,7 @@ class DataTableWidget extends StatelessWidget {
                 constraints: BoxConstraints(minWidth: constraints.maxWidth),
                 child: DataTable(
                   showCheckboxColumn: false,
-                  columnSpacing: constraints.maxWidth *
-                      0.05, // Adjust this value as needed
+                  columnSpacing: constraints.maxWidth * 0.05,
                   columns: const [
                     DataColumn(
                       label: Text(
@@ -113,6 +112,10 @@ class DataTableWidget extends StatelessWidget {
                             ),
                           ),
                         ),
+                        // DataCell(Container(
+                        //   width: 0,
+                        //   child: Text(row['id']),
+                        // ))
                       ],
                       onSelectChanged: (selected) {
                         if (selected != null && selected) {

@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -41,6 +43,7 @@ class _AppWrapperState extends State<AppWrapper> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {});
     if (state == AppLifecycleState.resumed) {
       // Force a rebuild when the app is resumed
       setState(() {});
@@ -139,7 +142,7 @@ class _MyAppState extends State<MyApp> {
 class MyHomePage extends StatefulWidget {
   final Function onReload;
 
-  MyHomePage({required this.onReload, super.key});
+  const MyHomePage({required this.onReload, super.key});
 
   @override
   _MyHomePageState createState() => _MyHomePageState();

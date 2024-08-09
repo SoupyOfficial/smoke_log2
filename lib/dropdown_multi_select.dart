@@ -12,6 +12,7 @@ class DropdownMultiSelect extends StatefulWidget {
   });
 
   @override
+  // ignore: library_private_types_in_public_api
   _DropdownMultiSelectState createState() => _DropdownMultiSelectState();
 }
 
@@ -54,7 +55,13 @@ class _DropdownMultiSelectState extends State<DropdownMultiSelect> {
         _dropdownOptions = options;
       });
     } catch (e) {
-      print("Error fetching dropdown options: $e");
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error fetching dropdown options: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

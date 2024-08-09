@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +8,7 @@ import 'segmented_input.dart';
 import 'dropdown_multi_select.dart';
 
 class ManualEntryPage extends StatefulWidget {
-  const ManualEntryPage({Key? key}) : super(key: key);
+  const ManualEntryPage({super.key});
 
   @override
   _ManualEntryPageState createState() => _ManualEntryPageState();
