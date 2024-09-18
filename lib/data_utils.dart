@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:smoke_log2/Inhalation.dart';
+import 'THCConcentration.dart';
 import 'app_config.dart';
 
 class DataUtils {
@@ -74,15 +76,16 @@ class DataUtils {
         default:
           switch (range) {
             case 'week':
-              return timestamp.isAfter(now.subtract(const Duration(days: 7)));
+              return timestamp.isAfter(now.subtract(const Duration(days: 17)));
             case 'month':
-              return timestamp.isAfter(now.subtract(const Duration(days: 30)));
+              return timestamp.isAfter(now.subtract(const Duration(days: 40)));
             case '3 months':
-              return timestamp.isAfter(now.subtract(const Duration(days: 90)));
+              return timestamp
+                  .isAfter(now.subtract(const Duration(days: 1000)));
             case '6 months':
-              return timestamp.isAfter(now.subtract(const Duration(days: 180)));
+              return timestamp.isAfter(now.subtract(const Duration(days: 190)));
             case 'year':
-              return timestamp.isAfter(now.subtract(const Duration(days: 365)));
+              return timestamp.isAfter(now.subtract(const Duration(days: 375)));
             default:
               return false;
           }
@@ -148,15 +151,15 @@ class DataUtils {
         default:
           switch (range) {
             case 'week':
-              return timestamp.isAfter(now.subtract(const Duration(days: 7)));
+              return timestamp.isAfter(now.subtract(const Duration(days: 17)));
             case 'month':
-              return timestamp.isAfter(now.subtract(const Duration(days: 30)));
+              return timestamp.isAfter(now.subtract(const Duration(days: 40)));
             case '3 months':
-              return timestamp.isAfter(now.subtract(const Duration(days: 90)));
+              return timestamp.isAfter(now.subtract(const Duration(days: 100)));
             case '6 months':
-              return timestamp.isAfter(now.subtract(const Duration(days: 180)));
+              return timestamp.isAfter(now.subtract(const Duration(days: 190)));
             case 'year':
-              return timestamp.isAfter(now.subtract(const Duration(days: 365)));
+              return timestamp.isAfter(now.subtract(const Duration(days: 375)));
             default:
               return false;
           }
@@ -170,8 +173,38 @@ class DataUtils {
     return data;
   }
 
-  static List<FlSpot> convertDataToChartData(List<Map<String, dynamic>> data) {
+  static List<FlSpot> convertDataToChartData(
+      List<Map<String, dynamic>> data, String selectedRange, Duration window) {
     Map<DateTime, double> cumulativeLengths = {};
+    DateTime endDate = DateTime.now();
+    DateTime startDate;
+    int days = 7;
+
+    switch (selectedRange) {
+      case 'week':
+        startDate = endDate.subtract(const Duration(days: 7));
+        days = 7;
+        break;
+      case 'month':
+        startDate = endDate.subtract(const Duration(days: 30));
+        days = 30;
+        break;
+      case '3 months':
+        startDate = endDate.subtract(const Duration(days: 90));
+        days = 90;
+        break;
+      case '6 months':
+        startDate = endDate.subtract(const Duration(days: 180));
+        days = 180;
+        break;
+      case '1 year':
+        startDate = endDate.subtract(const Duration(days: 365));
+        days = 365;
+        break;
+      default:
+        throw ArgumentError('Invalid range selected');
+    }
+
     for (var doc in data) {
       var timestamp = (doc['timestamp'] as Timestamp).toDate();
       var date = DateTime(timestamp.year, timestamp.month, timestamp.day + 1)
@@ -184,9 +217,79 @@ class DataUtils {
       cumulativeLengths[date] = cumulativeLengths[date]! + length;
     }
 
-    return cumulativeLengths.entries.map((entry) {
+    return cumulativeLengths.entries
+        .where((entry) =>
+            entry.key.isAfter(endDate.subtract(Duration(days: days))))
+        .map((entry) {
       return FlSpot(entry.key.millisecondsSinceEpoch.toDouble(), entry.value);
     }).toList();
+  }
+
+  static List<FlSpot> calculateTHCConcentration(
+      List<Map<String, dynamic>> data, String selectedRange, Duration window) {
+    List<Inhalation> inhalations = [];
+    DateTime endDate = DateTime.now();
+    DateTime startDate;
+    int days = 7;
+
+    switch (selectedRange) {
+      case 'week':
+        startDate = endDate.subtract(const Duration(days: 7));
+        days = 7;
+        break;
+      case 'month':
+        startDate = endDate.subtract(const Duration(days: 30));
+        days = 30;
+        break;
+      case '3 months':
+        startDate = endDate.subtract(const Duration(days: 90));
+        days = 90;
+        break;
+      case '6 months':
+        startDate = endDate.subtract(const Duration(days: 180));
+        days = 180;
+        break;
+      case '1 year':
+        startDate = endDate.subtract(const Duration(days: 365));
+        days = 365;
+        break;
+      default:
+        throw ArgumentError('Invalid range selected');
+    }
+
+    for (int i = 0; i < data.length; i++) {
+      // Convert Firebase Timestamp to DateTime and then to milliseconds since epoch
+      DateTime timestamp = (data[i]['timestamp'] as Timestamp).toDate();
+      double currentTimestamp = timestamp.millisecondsSinceEpoch.toDouble();
+
+      double currentLength = data[i]['length'];
+
+      inhalations
+          .add(Inhalation(time: currentTimestamp, duration: currentLength));
+    }
+
+    // Create the THCConcentration object with default parameters and inhalations
+    THCConcentration thcCalc = THCConcentration(inhalations: inhalations);
+
+    // Now, calculate THC concentration at each timestamp
+    List<FlSpot> thcConcentrationData = [];
+
+    for (int i = 0; i < data.length; i++) {
+      // Convert Firebase Timestamp to DateTime and then to milliseconds since epoch
+      DateTime timestamp = (data[i]['timestamp'] as Timestamp).toDate();
+      double currentTimestamp = timestamp.millisecondsSinceEpoch.toDouble();
+
+      // Only add data points within the selected range
+      if (timestamp.isAfter(endDate.subtract(Duration(days: days)))) {
+        // Calculate THC concentration at this timestamp
+        double thcAtTime = thcCalc.calculateTHCAtTime(currentTimestamp);
+
+        // Add it to the result
+        thcConcentrationData.add(FlSpot(currentTimestamp, thcAtTime * 1000000));
+      }
+    }
+
+    return thcConcentrationData;
   }
 
   static List<Map<String, dynamic>> calculateRollingWeek(
@@ -333,6 +436,32 @@ class DataUtils {
     }
 
     return rollingChartData;
+  }
+
+  static List<Map<String, dynamic>> removeEarliest10DaysRecords(
+      List<Map<String, dynamic>> data) {
+    // Sort data by timestamp in ascending order
+    data.sort(
+        (a, b) => (a['timestamp'] as Timestamp).compareTo(b['timestamp']));
+
+    // Find the timestamp of the earliest record
+    if (data.isEmpty) {
+      return data; // If there is no data, return an empty list
+    }
+
+    DateTime earliestTimestamp =
+        (data.first['timestamp'] as Timestamp).toDate();
+
+    // Calculate the timestamp that is 10 days after the earliest record
+    DateTime thresholdDate = earliestTimestamp.add(const Duration(days: 10));
+
+    // Filter out any records that are before the thresholdDate
+    List<Map<String, dynamic>> filteredData = data.where((entry) {
+      DateTime entryTimestamp = (entry['timestamp'] as Timestamp).toDate();
+      return entryTimestamp.isAfter(thresholdDate);
+    }).toList();
+
+    return filteredData;
   }
 
   static String formatDate(double value, String range) {

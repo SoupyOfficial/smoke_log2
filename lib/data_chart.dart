@@ -127,12 +127,16 @@ class DataChart extends StatelessWidget {
                     switch (chartType) {
                       case 'cumulative':
                         label = 'Cumulative Usage';
+                      case 'thc_concentration':
+                        label = 'THC Concentration';
                       case 'rolling_24h':
                         label = 'Rolling 24h Usage';
                       case 'rolling_30d':
                         label = 'Rolling 30d Usage';
                       case 'rolling_90d':
                         label = 'Rolling 90d Usage';
+                      case 'default':
+                        label = 'Total';
                     }
                     return LineTooltipItem(
                       '$formattedDate\n$label: $value',

@@ -48,6 +48,8 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
     switch (value) {
       case 'cumulative':
         return 'Cumulative Usage';
+      case 'thc_concentration':
+        return 'Decay Rate';
       case 'rolling_24h':
         return 'Rolling 24h Usage';
       case 'rolling_30d':
@@ -124,6 +126,7 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
             },
             items: <String>[
               'cumulative',
+              'thc_concentration',
               'rolling_24h',
               'rolling_30d',
               'rolling_90d'
@@ -198,7 +201,11 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
   List<FlSpot> _getChartData(List<Map<String, dynamic>> sortedData) {
     switch (_selectedChartType) {
       case 'cumulative':
-        return DataUtils.convertDataToChartData(sortedData);
+        return DataUtils.convertDataToChartData(
+            sortedData, _selectedRange, const Duration(days: 1));
+      case 'thc_concentration':
+        return DataUtils.calculateTHCConcentration(
+            sortedData, _selectedRange, const Duration(days: 1));
       case 'rolling_24h':
         return DataUtils.convertDataToRollingChartData(
             sortedData, _selectedRange, const Duration(days: 1));
