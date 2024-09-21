@@ -189,8 +189,11 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
           timeRange: _selectedRange,
           chartType: _selectedChartType,
           chartData: chartData,
-          minY: _selectedChartType == 'cumulative' ? 0 : minY,
-          maxY: maxY,
+          minY: (_selectedChartType == 'cumulative' ||
+                  _selectedChartType == 'thc_concentration')
+              ? 0
+              : minY,
+          maxY: _selectedChartType == 'thc_concentration' ? maxY * 1.5 : maxY,
           minX: minX,
           maxX: maxX,
         ),

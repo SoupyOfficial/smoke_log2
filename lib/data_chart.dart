@@ -41,7 +41,12 @@ class DataChart extends StatelessWidget {
             lineBarsData: [
               LineChartBarData(
                 spots: chartData,
-                isCurved: true,
+                isCurved: chartType == 'thc_concentration' ? false : true,
+                dotData: FlDotData(
+                  show: chartType == 'thc_concentration'
+                      ? false
+                      : true, // Disable the dots
+                ),
                 color: Theme.of(context).highlightColor,
                 barWidth: 4,
                 belowBarData: BarAreaData(

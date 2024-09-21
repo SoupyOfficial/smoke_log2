@@ -232,6 +232,7 @@ class DataUtils {
     DateTime startDate;
     int days = 7;
 
+    // Determine the start date based on the selected range
     switch (selectedRange) {
       case 'week':
         startDate = endDate.subtract(const Duration(days: 7));
@@ -257,11 +258,10 @@ class DataUtils {
         throw ArgumentError('Invalid range selected');
     }
 
+    // Convert data into inhalations
     for (int i = 0; i < data.length; i++) {
-      // Convert Firebase Timestamp to DateTime and then to milliseconds since epoch
       DateTime timestamp = (data[i]['timestamp'] as Timestamp).toDate();
       double currentTimestamp = timestamp.millisecondsSinceEpoch.toDouble();
-
       double currentLength = data[i]['length'];
 
       inhalations
@@ -271,23 +271,43 @@ class DataUtils {
     // Create the THCConcentration object with default parameters and inhalations
     THCConcentration thcCalc = THCConcentration(inhalations: inhalations);
 
-    // Now, calculate THC concentration at each timestamp
+    // Initialize the THC concentration list
     List<FlSpot> thcConcentrationData = [];
 
-    for (int i = 0; i < data.length; i++) {
-      // Convert Firebase Timestamp to DateTime and then to milliseconds since epoch
-      DateTime timestamp = (data[i]['timestamp'] as Timestamp).toDate();
-      double currentTimestamp = timestamp.millisecondsSinceEpoch.toDouble();
+    // Step 1: Calculate THC at the start of every hour
+    DateTime currentTime = DateTime(
+        startDate.year, startDate.month, startDate.day, startDate.hour);
+    while (currentTime.isBefore(endDate)) {
+      double currentTimestamp = currentTime.millisecondsSinceEpoch.toDouble();
 
-      // Only add data points within the selected range
-      if (timestamp.isAfter(endDate.subtract(Duration(days: days)))) {
-        // Calculate THC concentration at this timestamp
-        double thcAtTime = thcCalc.calculateTHCAtTime(currentTimestamp);
+      // Calculate THC concentration at the start of the current hour
+      double thcAtTime = thcCalc.calculateTHCAtTime(currentTimestamp);
 
-        // Add it to the result
-        thcConcentrationData.add(FlSpot(currentTimestamp, thcAtTime * 1000000));
-      }
+      // Add the hourly result to the data list
+      thcConcentrationData.add(FlSpot(currentTimestamp, thcAtTime * 1000000));
+
+      // Move to the next hour
+      currentTime = currentTime.add(const Duration(minutes: 1));
     }
+
+    // // Step 2: Add actual inhalation occurrences with their timestamps
+    // for (int i = 0; i < data.length; i++) {
+    //   DateTime timestamp = (data[i]['timestamp'] as Timestamp).toDate();
+    //   double currentTimestamp = timestamp.millisecondsSinceEpoch.toDouble();
+
+    //   // Ensure that this timestamp is within the selected range
+    //   if (timestamp.isAfter(startDate) && timestamp.isBefore(endDate)) {
+    //     // Calculate THC concentration at the actual inhalation timestamp
+    //     double thcAtInhalation = thcCalc.calculateTHCAtTime(currentTimestamp);
+
+    //     // Add the actual occurrence to the data list
+    //     thcConcentrationData
+    //         .add(FlSpot(currentTimestamp, thcAtInhalation * 1000000));
+    //   }
+    // }
+
+    // Sort the result by timestamp for proper chronological order
+    thcConcentrationData.sort((a, b) => a.x.compareTo(b.x));
 
     return thcConcentrationData;
   }
