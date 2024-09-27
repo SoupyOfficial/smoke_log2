@@ -41,7 +41,8 @@ class DataChart extends StatelessWidget {
             lineBarsData: [
               LineChartBarData(
                 spots: chartData,
-                isCurved: chartType == 'thc_concentration' ? false : true,
+                isCurved: true,
+                // isCurved: chartType == 'thc_concentration' ? false : true,
                 dotData: FlDotData(
                   show: chartType == 'thc_concentration'
                       ? false
@@ -149,6 +150,9 @@ class DataChart extends StatelessWidget {
                     );
                   }).toList();
                 },
+                tooltipPadding: const EdgeInsets.all(8.0),
+                fitInsideHorizontally: true,
+                fitInsideVertically: true,
               ),
             ),
           )),
