@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'Inhalation.dart';
+import 'inhalation_record.dart';
 
 class THCConcentration {
   final double
@@ -7,7 +7,8 @@ class THCConcentration {
   final double absorptionRateConstant; // k_a: absorption rate
   final double eliminationRateConstant; // k_e: elimination rate
   final double eliminationPerUnitTime; // B: amount eliminated over time
-  List<Inhalation> inhalations; // List of inhalation events (timestamp, length)
+  List<InhalationRecord>
+      inhalations; // List of inhalation events (timestamp, length)
 
   THCConcentration({
     this.absorptionCoefficient = 0.25, // Default 25% absorption
@@ -21,9 +22,10 @@ class THCConcentration {
   double calculateTHCAtTime(double t) {
     double thcConcentration = 0.0;
 
-    for (Inhalation inhalation in inhalations) {
-      double inhalationTime = inhalation.time;
-      double inhalationDuration = inhalation.duration;
+    for (InhalationRecord inhalation in inhalations) {
+      double inhalationTime =
+          inhalation.timestamp.millisecondsSinceEpoch.toDouble();
+      double inhalationDuration = inhalation.length;
 
       // Calculate the absorption based on inhalation event
       double absorbedTHC = absorptionCoefficient *

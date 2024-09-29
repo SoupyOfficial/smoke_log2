@@ -1,9 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'data_utils.dart';
+import 'inhalation_record.dart';
 
 class DataTableWidget extends StatelessWidget {
-  final List<Map<String, dynamic>> tableData;
+  final List<InhalationRecord> tableData;
 
   const DataTableWidget({super.key, required this.tableData});
 
@@ -25,108 +26,26 @@ class DataTableWidget extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              return ConstrainedBox(
-                constraints: BoxConstraints(minWidth: constraints.maxWidth),
-                child: DataTable(
-                  showCheckboxColumn: false,
-                  columnSpacing: constraints.maxWidth * 0.05,
-                  columns: const [
-                    DataColumn(
-                      label: Text(
-                        'Timestamp',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Mood',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Physical',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    DataColumn(
-                      label: Text(
-                        'Length',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                  rows: tableData.reversed.map((row) {
-                    return DataRow(
-                      cells: [
-                        DataCell(
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                DateFormat('yyyy-MM-dd')
-                                    .format(row['timestamp'].toDate()),
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                DateFormat('hh:mma')
-                                    .format(row['timestamp'].toDate()),
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color:
-                                      Theme.of(context).colorScheme.onPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            row['mood'].toString(),
-                            style: TextStyle(
-                              color: DataUtils.getColorForRatings(
-                                  (row['mood'] as num).toDouble()),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            row['physical'].toString(),
-                            style: TextStyle(
-                              color: DataUtils.getColorForRatings(
-                                  (row['physical'] as num).toDouble()),
-                            ),
-                          ),
-                        ),
-                        DataCell(
-                          Text(
-                            row['length'].toStringAsFixed(2),
-                            style: TextStyle(
-                              color: DataUtils.getColorForLength(
-                                  (row['length'] as num).toDouble()),
-                            ),
-                          ),
-                        ),
-                        // DataCell(Container(
-                        //   width: 0,
-                        //   child: Text(row['id']),
-                        // ))
-                      ],
-                      onSelectChanged: (selected) {
-                        if (selected != null && selected) {
-                          DataUtils.showEditPopup(context, row);
-                        }
-                      },
-                    );
-                  }).toList(),
-                ),
-              );
-            },
+          child: DataTable(
+            columns: const [
+              DataColumn(label: Text('Length')),
+              DataColumn(label: Text('Mood Rating')),
+              DataColumn(label: Text('Physical Rating')),
+              DataColumn(label: Text('Reason')),
+              DataColumn(label: Text('Timestamp')),
+            ],
+            rows: tableData.map((data) {
+              final timestamp = data.timestamp;
+              final formattedTime =
+                  DateFormat('yyyy-MM-dd HH:mm:ss').format(timestamp.toDate());
+              return DataRow(cells: [
+                DataCell(Text(data.length.toString())),
+                DataCell(Text(data.moodRating.toString())),
+                DataCell(Text(data.physicalRating.toString())),
+                DataCell(Text((data.reason as List<dynamic>).join(', '))),
+                DataCell(Text(formattedTime)),
+              ]);
+            }).toList(),
           ),
         ),
       ),

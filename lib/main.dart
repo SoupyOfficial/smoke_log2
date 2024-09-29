@@ -18,6 +18,7 @@ void main() async {
   if (collectionName.isEmpty) {
     await AppConfig.setCollectionName('JacobLogs');
   }
+  print("Collection name: $collectionName");
   runApp(const AppWrapper());
 }
 

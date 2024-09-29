@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'Inhalation.dart';
+import 'inhalation_record.dart';
 import 'THCConcentration.dart';
 import 'input_section.dart';
 import 'segmented_input.dart';
@@ -202,7 +202,7 @@ class _HomePageState extends State<HomePage> {
         _currentTHC = _thcConcentration.calculateTHCAtTime(
                 DateTime.now().millisecondsSinceEpoch.toDouble()) *
             1000000.0;
-        print(_currentTHC);
+        // print(_currentTHC);
       });
     });
   }
@@ -215,7 +215,7 @@ class _HomePageState extends State<HomePage> {
         .collection(collectionName)
         .snapshots()
         .listen((snapshot) {
-      List<Inhalation> inhalations = snapshot.docs
+      List<InhalationRecord> inhalations = snapshot.docs
           .map((doc) {
             final data = doc.data();
             // Check for null values before converting to double
@@ -224,15 +224,12 @@ class _HomePageState extends State<HomePage> {
 
             // Only add valid inhalations
             if (time != null && duration != null) {
-              return Inhalation(
-                time: time.toDouble(),
-                duration: duration.toDouble(),
-              );
+              return InhalationRecord.fromFirestore(data);
             }
             return null; // Return null for invalid entries
           })
           .where((inhalation) => inhalation != null)
-          .cast<Inhalation>()
+          .cast<InhalationRecord>()
           .toList();
       setState(() {
         _thcConcentration.inhalations = inhalations;
