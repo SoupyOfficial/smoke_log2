@@ -20,7 +20,7 @@ class DataAnalysisPage extends StatefulWidget {
 
 class _DataAnalysisPageState extends State<DataAnalysisPage> {
   String _selectedRange = 'week';
-  String _selectedChartType = 'cumulative';
+  String _selectedChartType = 'thc_concentration';
   String _currentUser = 'Jacob';
   Stream<QuerySnapshot>? _dataStream;
 

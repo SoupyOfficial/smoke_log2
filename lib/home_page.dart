@@ -1,5 +1,9 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'Inhalation.dart';
+import 'THCConcentration.dart';
 import 'input_section.dart';
 import 'segmented_input.dart';
 import 'dropdown_multi_select.dart';
@@ -31,11 +35,19 @@ class _HomePageState extends State<HomePage> {
   Timer? _timer;
   String _currentUser = 'Jacob';
 
+  // New Variables for THC concentration
+  THCConcentration _thcConcentration = THCConcentration(inhalations: []);
+  double _currentTHC = 0.0;
+  StreamSubscription? _inhalationSubscription;
+  Timer? _THCtimer;
+
   @override
   void initState() {
     super.initState();
     _updateCurrentUser();
     _fetchData();
+    _fetchRealTimeInhalations();
+    // _startTHCTimer();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _updateTimeSinceLastUse();
     });
@@ -63,6 +75,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _timer?.cancel();
+    _THCtimer?.cancel();
+    _inhalationSubscription?.cancel();
     super.dispose();
   }
 
@@ -181,6 +195,54 @@ class _HomePageState extends State<HomePage> {
         '${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
   }
 
+  // Function to start a timer for real-time THC updates
+  void _startTHCTimer() {
+    _THCtimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      setState(() {
+        _currentTHC = _thcConcentration.calculateTHCAtTime(
+                DateTime.now().millisecondsSinceEpoch.toDouble()) *
+            1000000.0;
+        print(_currentTHC);
+      });
+    });
+  }
+
+  // Fetch real-time inhalation data from Firestore
+  Future<void> _fetchRealTimeInhalations() async {
+    String collectionName = await AppConfig.getCollectionName();
+
+    _inhalationSubscription = await FirebaseFirestore.instance
+        .collection(collectionName)
+        .snapshots()
+        .listen((snapshot) {
+      List<Inhalation> inhalations = snapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            // Check for null values before converting to double
+            final time = data['timestamp'].millisecondsSinceEpoch;
+            final duration = data['length'];
+
+            // Only add valid inhalations
+            if (time != null && duration != null) {
+              return Inhalation(
+                time: time.toDouble(),
+                duration: duration.toDouble(),
+              );
+            }
+            return null; // Return null for invalid entries
+          })
+          .where((inhalation) => inhalation != null)
+          .cast<Inhalation>()
+          .toList();
+      setState(() {
+        _thcConcentration.inhalations = inhalations;
+        if (_THCtimer == null) {
+          _startTHCTimer(); // Start timer only after data is available
+        }
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -222,6 +284,13 @@ class _HomePageState extends State<HomePage> {
                           const SizedBox(height: 8),
                           Text(
                             'Total Length for Last 24 Hours: ${_formatDuration(totalLengthFor24H)}',
+                            style: TextStyle(
+                                fontSize: 16,
+                                color: Theme.of(context).colorScheme.onPrimary),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Current THC Concentration: ${_currentTHC.toStringAsFixed(4)}',
                             style: TextStyle(
                                 fontSize: 16,
                                 color: Theme.of(context).colorScheme.onPrimary),
