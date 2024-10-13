@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'inhalation_record.dart';
-import 'THCConcentration.dart';
+import 'thc_concentration.dart';
 import 'input_section.dart';
 import 'segmented_input.dart';
 import 'dropdown_multi_select.dart';

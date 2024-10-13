@@ -24,6 +24,10 @@ class DataChart extends StatelessWidget {
   double calculateInterval(double minY, double maxY) {
     double range = maxY - minY;
     double interval = range / 6;
+    print("Chart Data First: " + chartData.first.toString());
+    print("Calculate Max Y: " +
+        chartData.map((r) => r.y).reduce((a, b) => a > b ? a : b).toString());
+    print("Max Y: " + maxY.toString());
 
     // Ensure interval is not zero or too small
     return interval > 0
