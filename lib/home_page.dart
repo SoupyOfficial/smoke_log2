@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'inhalation_record.dart';
@@ -12,6 +11,7 @@ import 'custom_app_bar.dart';
 import 'manual_entry_page.dart';
 import 'app_config.dart';
 import 'dart:async';
+// import 'thc_countdown_timer';
 
 class HomePage extends StatefulWidget {
   final Function onReload;
@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
     DateTime date = DateTime(now.year, now.month, now.day);
     DateTime twentyFourHoursAgo = now.subtract(const Duration(hours: 24));
 
-    // Query to get the total length for the last 24 hours
+    // Query to get the total length for today
     QuerySnapshot lengthDaySnapshot = await FirebaseFirestore.instance
         .collection(collectionName)
         .where('timestamp', isGreaterThanOrEqualTo: date)
@@ -171,7 +171,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     // Clear the message and reset input fields after 2 seconds
-    await Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 2), () {
       setState(() {
         submissionMessage = '';
         currentMood = -1;
@@ -211,7 +211,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchRealTimeInhalations() async {
     String collectionName = await AppConfig.getCollectionName();
 
-    _inhalationSubscription = await FirebaseFirestore.instance
+    _inhalationSubscription = FirebaseFirestore.instance
         .collection(collectionName)
         .snapshots()
         .listen((snapshot) {
@@ -242,6 +242,146 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Create a list to hold the children of the Stack
+    List<Widget> stackChildren = [
+      Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Theme.of(context).colorScheme.shadow,
+                        offset: const Offset(0, 2),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Total Length for Today: ${_formatDuration(totalLengthForToday)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Total Length for Last 24 Hours: ${_formatDuration(totalLengthFor24H)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Current THC Concentration: ${_currentTHC.toStringAsFixed(4)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Time Since Last Use: ${_formatTimeSince(timeSinceLastUse)}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InputSection(
+                        title: 'Current Mood',
+                        child: SegmentedInput(
+                          initialValue: currentMood,
+                          onValueChanged: (value) {
+                            setState(() {
+                              currentMood = value;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InputSection(
+                        title: 'Physical Comfort',
+                        child: SegmentedInput(
+                          initialValue: physicalComfort,
+                          onValueChanged: (value) {
+                            setState(() {
+                              physicalComfort = value;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InputSection(
+                        title: 'Reason(s)',
+                        child: DropdownMultiSelect(
+                          initialValues: reasons,
+                          onValueChanged: (value) {
+                            setState(() {
+                              reasons = value;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InputSection(
+                        title: 'Timer Input',
+                        child: TimerInput(
+                          initialDuration: timerDuration,
+                          onTimerEnd: (duration) {
+                            setState(() {
+                              timerDuration = duration;
+                              _submitData();
+                            });
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ];
+
+    // Conditionally add the Positioned widget if submissionMessage is not empty
+    if (submissionMessage.isNotEmpty) {
+      stackChildren.add(
+        Positioned(
+          bottom: 16,
+          left: 16,
+          right: 16,
+          child: Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              submissionMessage,
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Welcome $_currentUser',
@@ -249,136 +389,7 @@ class _HomePageState extends State<HomePage> {
         onReload: widget.onReload,
       ),
       body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Theme.of(context).colorScheme.shadow,
-                            offset: const Offset(0, 2),
-                            blurRadius: 4,
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Total Length for Today: ${_formatDuration(totalLengthForToday)}',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Theme.of(context).colorScheme.onPrimary),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Total Length for Last 24 Hours: ${_formatDuration(totalLengthFor24H)}',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Theme.of(context).colorScheme.onPrimary),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Current THC Concentration: ${_currentTHC.toStringAsFixed(4)}',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Theme.of(context).colorScheme.onPrimary),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Time Since Last Use: ${_formatTimeSince(timeSinceLastUse)}',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Theme.of(context).colorScheme.onPrimary),
-                          ),
-                          const SizedBox(height: 8),
-                          InputSection(
-                            title: 'Current Mood',
-                            child: SegmentedInput(
-                              initialValue: currentMood,
-                              onValueChanged: (value) {
-                                setState(() {
-                                  currentMood = value;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          InputSection(
-                            title: 'Physical Comfort',
-                            child: SegmentedInput(
-                              initialValue: physicalComfort,
-                              onValueChanged: (value) {
-                                setState(() {
-                                  physicalComfort = value;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          InputSection(
-                            title: 'Reason(s)',
-                            child: DropdownMultiSelect(
-                              initialValues: reasons,
-                              onValueChanged: (value) {
-                                setState(() {
-                                  reasons = value;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          InputSection(
-                            title: 'Timer Input',
-                            child: TimerInput(
-                              initialDuration: timerDuration,
-                              onTimerEnd: (duration) {
-                                setState(() {
-                                  timerDuration = duration;
-                                  _submitData();
-                                });
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (submissionMessage.isNotEmpty)
-            Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
-              child: Container(
-                padding: const EdgeInsets.all(8.0),
-                decoration: BoxDecoration(
-                  color:
-                      Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  submissionMessage,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-        ],
+        children: stackChildren,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _navigateToManualEntry,

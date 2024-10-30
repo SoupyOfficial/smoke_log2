@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'thc_concentration.dart';
 import 'inhalation_record.dart';
 import 'data_service.dart';
+import 'enums/time_range.dart';
+import 'enums/chart_type.dart';
 
 class DataUtils {
   final DataService dataService;
@@ -84,38 +86,34 @@ class DataUtils {
     return DateFormat('yyyy-MM-dd HH:mm:ss').format(dateTime);
   }
 
-  static String formatDate(double value, String range) {
-    final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
-    switch (range) {
-      case 'week':
-        return DateFormat('MM/dd').format(date);
-      case 'month':
-      case '3 months':
-      case '6 months':
-        return DateFormat('MM/dd').format(date);
-      case 'year':
-        return DateFormat('MM/yyyy').format(date);
-      default:
-        return DateFormat('MM/dd').format(date);
+  static String formatDate(double value, TimeRange timeRange) {
+    DateTime date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+
+    switch (timeRange) {
+      case TimeRange.week:
+        return DateFormat('E').format(date); // Day of week
+      case TimeRange.month:
+      case TimeRange.threeMonths:
+        return DateFormat('d MMM').format(date); // Day and month
+      case TimeRange.sixMonths:
+      case TimeRange.year:
+        return DateFormat('MMM').format(date); // Month
     }
   }
 
-  static double determineInterval(String range) {
-    switch (range) {
-      case 'week':
-        return 86400000; // one day in milliseconds
-      case 'month':
-        return 2592000000 / 8; // one month in milliseconds divided by 30 days
-      case '3 months':
-        return 7776000000 /
-            9; // three months in milliseconds divided by 90 days
-      case '6 months':
-        return 15552000000 /
-            6; // six months in milliseconds divided by 180 days
-      case 'year':
-        return 31536000000 / 12; // one year in milliseconds divided by 365 days
-      default:
-        return 86400000; // default to one day
+
+  static double determineInterval(TimeRange timeRange) {
+    switch (timeRange) {
+      case TimeRange.week:
+        return 1;
+      case TimeRange.month:
+        return 7;
+      case TimeRange.threeMonths:
+        return 14;
+      case TimeRange.sixMonths:
+        return 30;
+      case TimeRange.year:
+        return 60;
     }
   }
 
@@ -309,4 +307,20 @@ class DataUtils {
 
     return rollingChartData;
   }
+
+  static List<FlSpot> convertDataToRollingChartData24h(
+      List<InhalationRecord> data, String timeRange) {
+    return convertDataToRollingChartData(data, timeRange, Duration(days: 1));
+  }
+
+  static List<FlSpot> convertDataToRollingChartData30d(
+      List<InhalationRecord> data, String timeRange) {
+    return convertDataToRollingChartData(data, timeRange, Duration(days: 30));
+  }
+
+  static List<FlSpot> convertDataToRollingChartData90d(
+      List<InhalationRecord> data, String timeRange) {
+    return convertDataToRollingChartData(data, timeRange, Duration(days: 90));
+  }
+
 }

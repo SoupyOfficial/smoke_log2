@@ -1,17 +1,19 @@
+// data_chart.dart
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
-
 import 'data_utils.dart';
+import 'enums/time_range.dart';
+import 'enums/chart_type.dart';
 
 class DataChart extends StatelessWidget {
-  final String timeRange;
-  final String chartType;
+  final TimeRange timeRange;
+  final ChartType chartType;
   final List<FlSpot> chartData;
   final double minY, maxY, minX, maxX;
 
   const DataChart({
-    super.key,
+    Key? key,
     required this.timeRange,
     required this.chartType,
     required this.chartData,
@@ -19,7 +21,7 @@ class DataChart extends StatelessWidget {
     required this.maxY,
     required this.minX,
     required this.maxX,
-  });
+  }) : super(key: key);
 
   double calculateInterval(double minY, double maxY) {
     double range = maxY - minY;
@@ -37,6 +39,14 @@ class DataChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (chartData.isEmpty) {
+      return Center(
+        child: Text(
+          'No data available for the selected range.',
+          style: TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: LineChart(LineChartData(
@@ -46,9 +56,7 @@ class DataChart extends StatelessWidget {
             isCurved: true,
             // isCurved: chartType == 'thc_concentration' ? false : true,
             dotData: FlDotData(
-              show: chartType == 'thc_concentration'
-                  ? false
-                  : true, // Disable the dots
+              show: chartType != ChartType.thcConcentration, // Dots are hidden only for THC Concentration
             ),
             color: Theme.of(context).highlightColor,
             barWidth: 4,
@@ -131,19 +139,23 @@ class DataChart extends StatelessWidget {
                 String label = '';
 
                 switch (chartType) {
-                  case 'cumulative':
+                  case ChartType.cumulative:
                     label = 'Cumulative Usage';
-                  case 'thc_concentration':
+                    break;
+                  case ChartType.thcConcentration:
                     label = 'THC Concentration';
-                  case 'rolling_24h':
+                    break;
+                  case ChartType.rolling24h:
                     label = 'Rolling 24h Usage';
-                  case 'rolling_30d':
+                    break;
+                  case ChartType.rolling30d:
                     label = 'Rolling 30d Usage';
-                  case 'rolling_90d':
+                    break;
+                  case ChartType.rolling90d:
                     label = 'Rolling 90d Usage';
-                  case 'default':
-                    label = 'Total';
+                    break;
                 }
+
                 return LineTooltipItem(
                   '$formattedDate\n$label: $value',
                   TextStyle(color: Theme.of(context).colorScheme.onSurface),
