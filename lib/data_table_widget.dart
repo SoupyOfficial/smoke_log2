@@ -7,6 +7,58 @@ class DataTableWidget extends StatelessWidget {
 
   const DataTableWidget({super.key, required this.tableData});
 
+  static Color getColorForLength(double length) {
+    const double blueThreshold = 0.0;
+    const double greenThreshold = 3.0;
+    const double redThreshold = 18.0;
+    const double purpleThreshold = 12.0;
+    const double blackThreshold = 15.0;
+
+    if (length <= blueThreshold) {
+      return Colors.blue;
+    } else if (length <= greenThreshold) {
+      return Color.lerp(Colors.blue, Colors.green,
+          (length - blueThreshold) / (greenThreshold - blueThreshold))!;
+    } else if (length <= redThreshold) {
+      return Color.lerp(Colors.green, Colors.red,
+          (length - greenThreshold) / (redThreshold - greenThreshold))!;
+    } else if (length <= purpleThreshold) {
+      return Color.lerp(Colors.red, Colors.purple,
+          (length - redThreshold) / (purpleThreshold - redThreshold))!;
+    } else if (length <= blackThreshold) {
+      return Color.lerp(Colors.purple, Colors.black,
+          (length - purpleThreshold) / (blackThreshold - purpleThreshold))!;
+    } else {
+      return Colors.black;
+    }
+  }
+
+  static Color getColorForRatings(double rating) {
+    const double redThreshold = 2.0;
+    const double purpleThreshold = 4.0;
+    const double blueThreshold = 6.0;
+    const double greenThreshold = 8.0;
+    const double goldThreshold = 10.0;
+
+    if (rating <= redThreshold) {
+      return Colors.red;
+    } else if (rating <= purpleThreshold) {
+      return Color.lerp(Colors.red, Colors.purple,
+          (rating - redThreshold) / (purpleThreshold - redThreshold))!;
+    } else if (rating <= blueThreshold) {
+      return Color.lerp(Colors.purple, Colors.blue,
+          (rating - purpleThreshold) / (blueThreshold - purpleThreshold))!;
+    } else if (rating <= greenThreshold) {
+      return Color.lerp(Colors.blue, Colors.green,
+          (rating - blueThreshold) / (greenThreshold - blueThreshold))!;
+    } else if (rating <= goldThreshold) {
+      return Color.lerp(Colors.green, Colors.yellow[600],
+          (rating - greenThreshold) / (goldThreshold - greenThreshold))!;
+    } else {
+      return Colors.yellow[600]!;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isSmallScreen = MediaQuery.of(context).size.width < 600;
@@ -32,12 +84,12 @@ class DataTableWidget extends StatelessWidget {
             child: DataTable(
               columnSpacing: isSmallScreen ? 10 : null,
               columns: [
-                const DataColumn(
-                    label: Text('Len', overflow: TextOverflow.ellipsis)),
+                const DataColumn(label: Text('Time')),
                 const DataColumn(label: Text('Mood')),
                 const DataColumn(label: Text('Phys')),
                 if (!isSmallScreen) const DataColumn(label: Text('Reason')),
-                const DataColumn(label: Text('Time')),
+                const DataColumn(
+                    label: Text('Len', overflow: TextOverflow.ellipsis)),
               ],
               rows: tableData.map((data) {
                 final timestamp = data.timestamp;
@@ -45,32 +97,35 @@ class DataTableWidget extends StatelessWidget {
                         isSmallScreen ? 'MM/dd HH:mm' : 'yyyy-MM-dd HH:mm:ss')
                     .format(timestamp.toDate());
                 return DataRow(cells: [
-                  DataCell(SizedBox(
-                    width: 50, // Set fixed width for Length column
-                    child: Text(data.length.toStringAsFixed(2),
-                        overflow: TextOverflow.ellipsis),
+                  DataCell(Text(
+                    formattedTime,
+                    style: const TextStyle(overflow: TextOverflow.ellipsis),
                   )),
-                  DataCell(SizedBox(
-                    width: 40, // Set fixed width for Mood column
-                    child: Text(data.moodRating.toString(),
-                        overflow: TextOverflow.ellipsis),
+                  DataCell(Text(
+                    data.moodRating.toString(),
+                    style: TextStyle(
+                      color: getColorForRatings(data.moodRating.toDouble()),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   )),
-                  DataCell(SizedBox(
-                    width: 40, // Set fixed width for Physical column
-                    child: Text(data.physicalRating.toString(),
-                        overflow: TextOverflow.ellipsis),
+                  DataCell(Text(
+                    data.physicalRating.toString(),
+                    style: TextStyle(
+                      color: getColorForRatings(data.physicalRating.toDouble()),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   )),
                   if (!isSmallScreen)
-                    DataCell(SizedBox(
-                      width: isSmallScreen
-                          ? 100
-                          : 200, // Adjust Reason column width
-                      child: Text((data.reason as List<dynamic>).join(', '),
-                          overflow: TextOverflow.ellipsis),
+                    DataCell(Text(
+                      (data.reason as List<dynamic>).join(', '),
+                      style: const TextStyle(overflow: TextOverflow.ellipsis),
                     )),
-                  DataCell(SizedBox(
-                    width: 120, // Set fixed width for Timestamp column
-                    child: Text(formattedTime, overflow: TextOverflow.ellipsis),
+                  DataCell(Text(
+                    data.length.toStringAsFixed(2),
+                    style: TextStyle(
+                      color: getColorForLength(data.length),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   )),
                 ]);
               }).toList(),
