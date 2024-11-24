@@ -93,62 +93,48 @@ class DataChart extends StatelessWidget {
                       Theme.of(context).colorScheme.primary.withOpacity(0.3)),
             ),
           ],
-          // titlesData: FlTitlesData(
-          //   bottomTitles: AxisTitles(
-          //     sideTitles: SideTitles(
-          //       showTitles: true,
-          //       reservedSize: 30,
-          //       interval: DataUtils.determineInterval(
-          //           timeRange), // Determine interval based on time range
-          //       getTitlesWidget: (value, meta) {
-          //         if (value == chartData.last.x) {
-          //           return Container();
-          //         }
-          //         return Padding(
-          //             padding: const EdgeInsets.only(top: 8.0),
-          //             child: Transform.translate(
-          //               offset: const Offset(-10, 0),
-          //               child: Transform.rotate(
-          //                 angle: -0.5, // Rotate labels for better readability
-          //                 child: Text(
-          //                   DataUtils.formatDate(value,
-          //                       timeRange), // Format date based on time range
-          //                 ),
-          //               ),
-          //             ));
-          //       },
-          //     ),
-          //   ),
-          //   leftTitles: AxisTitles(
-          //     sideTitles: SideTitles(
-          //       showTitles: true,
-          //       reservedSize: 40,
-          //       getTitlesWidget: (value, meta) {
-          //         if ((value - minY).abs() < 5 || (value - maxY).abs() < 5) {
-          //           return Container();
-          //         }
-          //         return Transform.translate(
-          //           offset: const Offset(-10, 0),
-          //           child: Text(
-          //             value.toStringAsFixed(0),
-          //             style: const TextStyle(fontSize: 10),
-          //           ),
-          //         );
-          //       },
-          //       interval: calculateInterval(minY, maxY), // Set dynamic interval
-          //     ),
-          //   ),
-          //   rightTitles: const AxisTitles(
-          //     sideTitles: SideTitles(
-          //       showTitles: false, // Hide labels on the right side
-          //     ),
-          //   ),
-          //   topTitles: const AxisTitles(
-          //     sideTitles: SideTitles(
-          //       showTitles: false, // Hide labels on the top side
-          //     ),
-          //   ),
-          // ),
+          titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 40,
+                interval: calculateInterval(minY, maxY), // Dynamic interval
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    value.toStringAsFixed(0),
+                    style: const TextStyle(fontSize: 10),
+                  );
+                },
+              ),
+            ),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                reservedSize: 30,
+                interval: (maxX - minX) / 10,
+                getTitlesWidget: (value, meta) {
+                  // Convert `value` to DateTime
+                  final date =
+                      DateTime.fromMillisecondsSinceEpoch(value.toInt());
+                  final formattedDate =
+                      DateFormat('MMM dd').format(date); // Format as 'Jan 01'
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text(
+                      formattedDate,
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                  );
+                },
+              ),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Temporarily disable
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Temporarily disable
+            ),
+          ),
           borderData: FlBorderData(show: false),
           gridData: const FlGridData(show: true),
           minX: minX,
