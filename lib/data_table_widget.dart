@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'inhalation_record.dart';
@@ -10,6 +9,8 @@ class DataTableWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -26,26 +27,54 @@ class DataTableWidget extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
-          child: DataTable(
-            columns: const [
-              DataColumn(label: Text('Length')),
-              DataColumn(label: Text('Mood Rating')),
-              DataColumn(label: Text('Physical Rating')),
-              DataColumn(label: Text('Reason')),
-              DataColumn(label: Text('Timestamp')),
-            ],
-            rows: tableData.map((data) {
-              final timestamp = data.timestamp;
-              final formattedTime =
-                  DateFormat('yyyy-MM-dd HH:mm:ss').format(timestamp.toDate());
-              return DataRow(cells: [
-                DataCell(Text(data.length.toStringAsFixed(2))),
-                DataCell(Text(data.moodRating.toString())),
-                DataCell(Text(data.physicalRating.toString())),
-                DataCell(Text((data.reason as List<dynamic>).join(', '))),
-                DataCell(Text(formattedTime)),
-              ]);
-            }).toList(),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              columnSpacing: isSmallScreen ? 10 : null,
+              columns: [
+                const DataColumn(
+                    label: Text('Len', overflow: TextOverflow.ellipsis)),
+                const DataColumn(label: Text('Mood')),
+                const DataColumn(label: Text('Phys')),
+                if (!isSmallScreen) const DataColumn(label: Text('Reason')),
+                const DataColumn(label: Text('Time')),
+              ],
+              rows: tableData.map((data) {
+                final timestamp = data.timestamp;
+                final formattedTime = DateFormat(
+                        isSmallScreen ? 'MM/dd HH:mm' : 'yyyy-MM-dd HH:mm:ss')
+                    .format(timestamp.toDate());
+                return DataRow(cells: [
+                  DataCell(SizedBox(
+                    width: 50, // Set fixed width for Length column
+                    child: Text(data.length.toStringAsFixed(2),
+                        overflow: TextOverflow.ellipsis),
+                  )),
+                  DataCell(SizedBox(
+                    width: 40, // Set fixed width for Mood column
+                    child: Text(data.moodRating.toString(),
+                        overflow: TextOverflow.ellipsis),
+                  )),
+                  DataCell(SizedBox(
+                    width: 40, // Set fixed width for Physical column
+                    child: Text(data.physicalRating.toString(),
+                        overflow: TextOverflow.ellipsis),
+                  )),
+                  if (!isSmallScreen)
+                    DataCell(SizedBox(
+                      width: isSmallScreen
+                          ? 100
+                          : 200, // Adjust Reason column width
+                      child: Text((data.reason as List<dynamic>).join(', '),
+                          overflow: TextOverflow.ellipsis),
+                    )),
+                  DataCell(SizedBox(
+                    width: 120, // Set fixed width for Timestamp column
+                    child: Text(formattedTime, overflow: TextOverflow.ellipsis),
+                  )),
+                ]);
+              }).toList(),
+            ),
           ),
         ),
       ),
