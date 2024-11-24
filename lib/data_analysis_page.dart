@@ -29,7 +29,7 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
   late DataController _dataController;
   bool _isLoading = true;
   TimeRange _selectedRange = TimeRange.week;
-  ChartType _selectedChartType = ChartType.thcConcentration;
+  ChartType _selectedChartType = ChartType.cumulative;
   String _currentUser = 'Jacob';
   List<InhalationRecord> _records = [];
   List<FlSpot> _chartData = [];
@@ -47,20 +47,22 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
     DataUtils dataUtils = DataUtils(dataService: dataService);
 
     _dataController = DataController(
-      dataService: dataService,
-      dataUtils: dataUtils,
-      selectedChartType: _selectedChartType,
-      selectedRange: _selectedRange
-    );
+        dataService: dataService,
+        dataUtils: dataUtils,
+        selectedChartType: _selectedChartType,
+        selectedRange: _selectedRange);
 
     await _dataController.initialize();
 
+    if (_dataController.chartData.isEmpty) {
+      print("Warning: Chart data is empty after initialization.");
+    }
+
     if (mounted) {
       setState(() {
-        _isLoading = false;
-    _chartData = _dataController.chartData;
-    _records = _dataController.records;
-    _isLoading = false;
+        // _isLoading = false;
+        _chartData = _dataController.chartData;
+        _records = _dataController.records;
       });
     }
   }
@@ -93,7 +95,7 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
             onChanged: (newValue) {
               setState(() {
                 _selectedChartType = newValue!;
-            });
+              });
             },
           ),
         ],
@@ -103,10 +105,12 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
 
   @override
   Widget build(BuildContext context) {
-  print('Building DataAnalysisPage...');
-  print('Chart data length: ${_chartData.length}');
-  print('First chart data point: ${_chartData.isNotEmpty ? _chartData.first : 'No Data'}');
-  print('Last chart data point: ${_chartData.isNotEmpty ? _chartData.last : 'No Data'}');
+    print('Building DataAnalysisPage...');
+    print('Chart data length: ${_chartData.length}');
+    print(
+        'First chart data point: ${_chartData.isNotEmpty ? _chartData.first : 'No Data'}');
+    print(
+        'Last chart data point: ${_chartData.isNotEmpty ? _chartData.last : 'No Data'}');
 
     return Scaffold(
       appBar: CustomAppBar(
@@ -114,13 +118,15 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
         onSwapUser: _swapUser,
         onReload: widget.onReload,
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator()) // Show loading indicator
-          : Column(
-              children: [
-                _buildDropdowns(),
-                Expanded(
-                  child: DataChart(
+      body: Column(
+        children: [
+          _buildDropdowns(),
+          Expanded(
+            child: _isLoading
+                ? Center(
+                    child:
+                        CircularProgressIndicator()) // Show loading indicator
+                : DataChart(
                     timeRange: _selectedRange,
                     chartType: _selectedChartType,
                     chartData: _chartData,
@@ -134,16 +140,14 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
                     minX: _chartData.isNotEmpty ? _chartData.first.x : 0,
                     maxX: _chartData.isNotEmpty ? _chartData.last.x : 1,
                   ),
-                ),
-                Expanded(
-                  child: DataTableWidget(
-                    tableData: _records,
-                  ),
-                ),
-              ],
+          ),
+          Expanded(
+            child: DataTableWidget(
+              tableData: _records,
             ),
+          ),
+        ],
+      ),
     );
   }
-
-  // The rest of your UI code remains mostly unchanged
 }

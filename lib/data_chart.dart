@@ -37,6 +37,14 @@ class DataChart extends StatelessWidget {
         : 1.0; // Set to a default value like 1.0 if interval is zero
   }
 
+  List<FlSpot> thinData(List<FlSpot> data, int step) {
+    List<FlSpot> thinnedData = [];
+    for (int i = 0; i < data.length; i += step) {
+      thinnedData.add(data[i]);
+    }
+    return thinnedData;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (chartData.isEmpty) {
@@ -52,11 +60,13 @@ class DataChart extends StatelessWidget {
       child: LineChart(LineChartData(
         lineBarsData: [
           LineChartBarData(
-            spots: chartData,
+            spots: thinData(chartData, 100),
             isCurved: true,
             // isCurved: chartType == 'thc_concentration' ? false : true,
             dotData: FlDotData(
-              show: chartType != ChartType.thcConcentration, // Dots are hidden only for THC Concentration
+              show: chartType !=
+                  ChartType
+                      .thcConcentration, // Dots are hidden only for THC Concentration
             ),
             color: Theme.of(context).highlightColor,
             barWidth: 4,
@@ -117,7 +127,7 @@ class DataChart extends StatelessWidget {
           ),
           topTitles: const AxisTitles(
             sideTitles: SideTitles(
-              showTitles: false, // Hide labels on the top side if necessary
+              showTitles: false, // Hide labels on the top side
             ),
           ),
         ),
