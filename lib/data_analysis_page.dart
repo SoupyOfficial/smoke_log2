@@ -84,23 +84,44 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
         children: [
           TimeRangeDropdown(
             selectedRange: _selectedRange,
-            onChanged: (newValue) {
+            onChanged: (newValue) async {
               setState(() {
                 _selectedRange = newValue!;
+                _dataController.selectedRange = _selectedRange;
               });
+              await _updateChartData();
             },
           ),
           ChartTypeDropdown(
             selectedChartType: _selectedChartType,
-            onChanged: (newValue) {
+            onChanged: (newValue) async {
               setState(() {
                 _selectedChartType = newValue!;
+                _dataController.selectedChartType = _selectedChartType;
               });
+              await _updateChartData();
             },
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _updateChartData() async {
+    setState(() {
+      _isLoading = true; // Show loading indicator while updating
+    });
+
+    await _dataController
+        .fetchData(); // Fetch new data for the selected chart type and range
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+        _chartData = _dataController.chartData; // Update chart data
+        _records = _dataController.records; // Update records if needed
+      });
+    }
   }
 
   @override
