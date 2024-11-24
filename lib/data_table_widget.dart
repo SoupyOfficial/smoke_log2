@@ -61,8 +61,6 @@ class DataTableWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSmallScreen = MediaQuery.of(context).size.width < 600;
-
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
@@ -79,57 +77,103 @@ class DataTableWidget extends StatelessWidget {
         ),
         child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columnSpacing: isSmallScreen ? 10 : null,
-              columns: [
-                const DataColumn(label: Text('Time')),
-                const DataColumn(label: Text('Mood')),
-                const DataColumn(label: Text('Phys')),
-                if (!isSmallScreen) const DataColumn(label: Text('Reason')),
-                const DataColumn(
-                    label: Text('Len', overflow: TextOverflow.ellipsis)),
-              ],
-              rows: tableData.map((data) {
-                final timestamp = data.timestamp;
-                final formattedTime = DateFormat(
-                        isSmallScreen ? 'MM/dd HH:mm' : 'yyyy-MM-dd HH:mm:ss')
-                    .format(timestamp.toDate());
-                return DataRow(cells: [
-                  DataCell(Text(
-                    formattedTime,
-                    style: const TextStyle(overflow: TextOverflow.ellipsis),
-                  )),
-                  DataCell(Text(
-                    data.moodRating.toString(),
-                    style: TextStyle(
-                      color: getColorForRatings(data.moodRating.toDouble()),
-                      overflow: TextOverflow.ellipsis,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              return ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: DataTable(
+                  showCheckboxColumn: false,
+                  columnSpacing: constraints.maxWidth * 0.05,
+                  columns: const [
+                    DataColumn(
+                      label: Text(
+                        'Timestamp',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  )),
-                  DataCell(Text(
-                    data.physicalRating.toString(),
-                    style: TextStyle(
-                      color: getColorForRatings(data.physicalRating.toDouble()),
-                      overflow: TextOverflow.ellipsis,
+                    DataColumn(
+                      label: Text(
+                        'Mood',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  )),
-                  if (!isSmallScreen)
-                    DataCell(Text(
-                      (data.reason as List<dynamic>).join(', '),
-                      style: const TextStyle(overflow: TextOverflow.ellipsis),
-                    )),
-                  DataCell(Text(
-                    data.length.toStringAsFixed(2),
-                    style: TextStyle(
-                      color: getColorForLength(data.length),
-                      overflow: TextOverflow.ellipsis,
+                    DataColumn(
+                      label: Text(
+                        'Physical',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  )),
-                ]);
-              }).toList(),
-            ),
+                    DataColumn(
+                      label: Text(
+                        'Length',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                  rows: tableData.map((record) {
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                DateFormat('yyyy-MM-dd')
+                                    .format(record.timestamp.toDate()),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                DateFormat('hh:mma')
+                                    .format(record.timestamp.toDate()),
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            record.moodRating.toString(),
+                            style: TextStyle(
+                              color: getColorForRatings(
+                                  record.moodRating.toDouble()),
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            record.physicalRating.toString(),
+                            style: TextStyle(
+                              color: getColorForRatings(
+                                  record.physicalRating.toDouble()),
+                            ),
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            record.length.toStringAsFixed(2),
+                            style: TextStyle(
+                              color: getColorForLength(record.length),
+                            ),
+                          ),
+                        ),
+                      ],
+                      onSelectChanged: (selected) {
+                        if (selected != null && selected) {
+                          // Add interaction logic here if needed
+                        }
+                      },
+                    );
+                  }).toList(),
+                ),
+              );
+            },
           ),
         ),
       ),
