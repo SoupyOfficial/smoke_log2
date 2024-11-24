@@ -112,14 +112,22 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
       _isLoading = true; // Show loading indicator while updating
     });
 
-    await _dataController
-        .fetchData(); // Fetch new data for the selected chart type and range
-
-    if (mounted) {
+    try {
+      await _dataController
+          .fetchData(); // Fetch new data for the selected chart type and range
+      if (mounted) {
+        setState(() {
+          _chartData = _dataController.chartData; // Update chart data
+          _records = _dataController.records; // Update records if needed
+        });
+      }
+    } catch (e, stackTrace) {
+      print('Error fetching chart data: $e');
+      print(stackTrace);
+      // Optionally, show a user-friendly error message
+    } finally {
       setState(() {
         _isLoading = false;
-        _chartData = _dataController.chartData; // Update chart data
-        _records = _dataController.records; // Update records if needed
       });
     }
   }

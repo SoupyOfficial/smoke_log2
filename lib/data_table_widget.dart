@@ -39,7 +39,7 @@ class DataTableWidget extends StatelessWidget {
               final formattedTime =
                   DateFormat('yyyy-MM-dd HH:mm:ss').format(timestamp.toDate());
               return DataRow(cells: [
-                DataCell(Text(data.length.toString())),
+                DataCell(Text(data.length.toStringAsFixed(2))),
                 DataCell(Text(data.moodRating.toString())),
                 DataCell(Text(data.physicalRating.toString())),
                 DataCell(Text((data.reason as List<dynamic>).join(', '))),

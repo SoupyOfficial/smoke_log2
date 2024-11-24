@@ -8,7 +8,6 @@ import 'enums/chart_type.dart';
 import 'enums/time_range.dart';
 import 'thc_concentration.dart';
 
-
 class DataController {
   final DataService dataService;
   final DataUtils dataUtils;
@@ -23,7 +22,7 @@ class DataController {
     required this.dataUtils,
     required this.selectedChartType,
     required this.selectedRange,
-    });
+  });
 
   Future<void> initialize() async {
     await _updateCurrentUser();
@@ -36,8 +35,15 @@ class DataController {
   }
 
   Future<void> fetchData() async {
+    // Fetch records from the DataUtils service
     records = await dataUtils.fetchAllRecords();
-    print('Fetched ${records.length} records.');
+
+    // Sort records by timestamp in descending order
+    records.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    print('Fetched ${records.length} records, sorted by timestamp descending.');
+
+    // Generate chart data from the sorted records
     chartData = getChartData(records);
     print('Generated chartData with ${chartData.length} points.');
   }
@@ -79,6 +85,4 @@ class DataController {
       return [];
     }
   }
-
-
 }
