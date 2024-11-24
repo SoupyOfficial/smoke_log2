@@ -60,7 +60,7 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
 
     if (mounted) {
       setState(() {
-        // _isLoading = false;
+        _isLoading = false;
         _chartData = _dataController.chartData;
         _records = _dataController.records;
       });
@@ -105,49 +105,55 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
 
   @override
   Widget build(BuildContext context) {
-    print('Building DataAnalysisPage...');
-    print('Chart data length: ${_chartData.length}');
-    print(
-        'First chart data point: ${_chartData.isNotEmpty ? _chartData.first : 'No Data'}');
-    print(
-        'Last chart data point: ${_chartData.isNotEmpty ? _chartData.last : 'No Data'}');
+    try {
+      print('Building DataAnalysisPage...');
+      print('Chart data length: ${_chartData.length}');
+      print(
+          'First chart data point: ${_chartData.isNotEmpty ? _chartData.first : 'No Data'}');
+      print(
+          'Last chart data point: ${_chartData.isNotEmpty ? _chartData.last : 'No Data'}');
 
-    return Scaffold(
-      appBar: CustomAppBar(
-        title: '$_currentUser\'s Data Analysis',
-        onSwapUser: _swapUser,
-        onReload: widget.onReload,
-      ),
-      body: Column(
-        children: [
-          _buildDropdowns(),
-          Expanded(
-            child: _isLoading
-                ? Center(
-                    child:
-                        CircularProgressIndicator()) // Show loading indicator
-                : DataChart(
-                    timeRange: _selectedRange,
-                    chartType: _selectedChartType,
-                    chartData: _chartData,
-                    minY: 0,
-                    maxY: _chartData.isNotEmpty
-                        ? _chartData
-                                .map((r) => r.y)
-                                .reduce((a, b) => a > b ? a : b) *
-                            1.5
-                        : 0,
-                    minX: _chartData.isNotEmpty ? _chartData.first.x : 0,
-                    maxX: _chartData.isNotEmpty ? _chartData.last.x : 1,
-                  ),
-          ),
-          Expanded(
-            child: DataTableWidget(
-              tableData: _records,
+      return Scaffold(
+        appBar: CustomAppBar(
+          title: '$_currentUser\'s Data Analysis',
+          onSwapUser: _swapUser,
+          onReload: widget.onReload,
+        ),
+        body: Column(
+          children: [
+            _buildDropdowns(),
+            Expanded(
+              child: _isLoading
+                  ? Center(
+                      child:
+                          CircularProgressIndicator()) // Show loading indicator
+                  : DataChart(
+                      timeRange: _selectedRange,
+                      chartType: _selectedChartType,
+                      chartData: _chartData,
+                      minY: 0,
+                      maxY: _chartData.isNotEmpty
+                          ? _chartData
+                                  .map((r) => r.y)
+                                  .reduce((a, b) => a > b ? a : b) *
+                              1.5
+                          : 0,
+                      minX: _chartData.isNotEmpty ? _chartData.first.x : 0,
+                      maxX: _chartData.isNotEmpty ? _chartData.last.x : 1,
+                    ),
             ),
-          ),
-        ],
-      ),
-    );
+            Expanded(
+              child: DataTableWidget(
+                tableData: _records,
+              ),
+            ),
+          ],
+        ),
+      );
+    } catch (e, stackTrace) {
+      print('Error building DataAnalysisPage: $e');
+      print(stackTrace);
+      return ErrorWidget('Something went wrong');
+    }
   }
 }
