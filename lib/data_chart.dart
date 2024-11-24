@@ -68,8 +68,8 @@ class DataChart extends StatelessWidget {
     }
     chartData.sort((a, b) => a.x.compareTo(b.x));
 
-    print("Sorted Chart Data:");
-    chartData.forEach((spot) => print("x: ${spot.x}, y: ${spot.y}"));
+    // print("Sorted Chart Data:");
+    // chartData.forEach((spot) => print("x: ${spot.x}, y: ${spot.y}"));
 
     try {
       return Padding(
@@ -111,8 +111,12 @@ class DataChart extends StatelessWidget {
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 30,
-                interval: (maxX - minX) / 10,
+                interval: DataUtils.determineInterval(
+                    timeRange), // Determine interval based on time range
                 getTitlesWidget: (value, meta) {
+                  if (value == chartData.last.x) {
+                    return Container();
+                  }
                   // Convert `value` to DateTime
                   final date =
                       DateTime.fromMillisecondsSinceEpoch(value.toInt());

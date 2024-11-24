@@ -101,19 +101,22 @@ class DataUtils {
     }
   }
 
-
   static double determineInterval(TimeRange timeRange) {
     switch (timeRange) {
       case TimeRange.week:
-        return 1;
+        return 86400000; // one day in milliseconds
       case TimeRange.month:
-        return 7;
+        return 2592000000 / 8; // one month in milliseconds divided by 30 days
       case TimeRange.threeMonths:
-        return 14;
+        return 7776000000 /
+            9; // three months in milliseconds divided by 90 days
       case TimeRange.sixMonths:
-        return 30;
+        return 15552000000 /
+            6; // six months in milliseconds divided by 180 days
       case TimeRange.year:
-        return 60;
+        return 31536000000 / 12; // one year in milliseconds divided by 365 days
+      default:
+        throw ArgumentError('Invalid time range selected');
     }
   }
 
@@ -322,5 +325,4 @@ class DataUtils {
       List<InhalationRecord> data, String timeRange) {
     return convertDataToRollingChartData(data, timeRange, Duration(days: 90));
   }
-
 }

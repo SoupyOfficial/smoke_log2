@@ -29,7 +29,7 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
   late DataController _dataController;
   bool _isLoading = true;
   TimeRange _selectedRange = TimeRange.week;
-  ChartType _selectedChartType = ChartType.cumulative;
+  ChartType _selectedChartType = ChartType.thcConcentration;
   String _currentUser = 'Jacob';
   List<InhalationRecord> _records = [];
   List<FlSpot> _chartData = [];
