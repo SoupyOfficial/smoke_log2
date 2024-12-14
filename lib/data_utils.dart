@@ -164,12 +164,16 @@ class DataUtils {
       cumulativeLengths[date] = cumulativeLengths[date]! + length;
     }
 
-    return cumulativeLengths.entries
+    var result = cumulativeLengths.entries
         .where((entry) =>
             entry.key.isAfter(endDate.subtract(Duration(days: days))))
         .map((entry) {
       return FlSpot(entry.key.millisecondsSinceEpoch.toDouble(), entry.value);
     }).toList();
+
+    result.sort((a, b) => a.x.compareTo(b.x));
+
+    return result;
   }
 
   static List<FlSpot> calculateTHCConcentration(
@@ -307,6 +311,8 @@ class DataUtils {
             currentTimestamp.millisecondsSinceEpoch.toDouble(), rollingSum));
       }
     }
+
+    rollingChartData.sort((a, b) => a.x.compareTo(b.x));
 
     return rollingChartData;
   }
