@@ -218,6 +218,7 @@ class _HomePageState extends State<HomePage> {
       List<InhalationRecord> inhalations = snapshot.docs
           .map((doc) {
             final data = doc.data();
+            data['id'] = doc.id;
             // Check for null values before converting to double
             final time = data['timestamp'].millisecondsSinceEpoch;
             final duration = data['length'];

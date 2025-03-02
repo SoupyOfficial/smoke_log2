@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:smoke_log2/app_config.dart';
 import 'thc_concentration.dart';
 import 'inhalation_record.dart';
 import 'data_service.dart';
@@ -330,5 +332,151 @@ class DataUtils {
   static List<FlSpot> convertDataToRollingChartData90d(
       List<InhalationRecord> data, String timeRange) {
     return convertDataToRollingChartData(data, timeRange, Duration(days: 90));
+  }
+
+  static void showEditPopup(BuildContext context, InhalationRecord rowData,
+      Function updateTableData) {
+    TextEditingController moodController =
+        TextEditingController(text: rowData.moodRating.toString());
+    TextEditingController physicalController =
+        TextEditingController(text: rowData.physicalRating.toString());
+    TextEditingController lengthController =
+        TextEditingController(text: (rowData.length).toStringAsFixed(2));
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Record',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextFormField(
+                    controller: moodController,
+                    decoration: InputDecoration(
+                      labelText: 'Mood',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextFormField(
+                    controller: physicalController,
+                    decoration: InputDecoration(
+                      labelText: 'Physical',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextFormField(
+                    controller: lengthController,
+                    decoration: InputDecoration(
+                      labelText: 'Length',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                String collectionName = await AppConfig.getCollectionName();
+
+                await FirebaseFirestore.instance
+                    .collection(collectionName)
+                    .doc(rowData.id)
+                    .delete()
+                    .then((value) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Record deleted successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }).catchError((error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error deleting record: $error'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                });
+                // ignore: use_build_context_synchronously
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Record deleted successfully')),
+                );
+              },
+            ),
+            TextButton(
+              child: const Text('Cancel', style: TextStyle(color: Colors.red)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    Theme.of(context).primaryColor, // Background color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+              ),
+              child: const Text('Confirm'),
+              onPressed: () async {
+                String collectionName = await AppConfig.getCollectionName();
+
+                updateTableData(rowData);
+
+                // Update the record in Firebase
+                await FirebaseFirestore.instance
+                    .collection(collectionName)
+                    .doc(rowData.id)
+                    .update({
+                  'moodRating': int.parse(moodController.text),
+                  'physicalRating': int.parse(physicalController.text),
+                  'length': double.parse(lengthController.text),
+                }).then((value) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Record updated successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }).catchError((error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error updating record: $error'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

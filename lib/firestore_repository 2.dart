@@ -10,9 +10,7 @@ class FirestoreRepository {
         await _firestore.collection(collectionName).get();
 
     return snapshot.docs.map((doc) {
-      var data = doc.data() as Map<String, dynamic>;
-      data['id'] = doc.id;
-      return InhalationRecord.fromFirestore(data);
+      return InhalationRecord.fromFirestore(doc.data() as Map<String, dynamic>);
     }).toList();
   }
 

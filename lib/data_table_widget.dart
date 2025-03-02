@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:smoke_log2/data_utils.dart';
 import 'inhalation_record.dart';
 
 class DataTableWidget extends StatelessWidget {
   final List<InhalationRecord> tableData;
+  final Function updateTableData;
 
-  const DataTableWidget({super.key, required this.tableData});
+  const DataTableWidget(
+      {super.key, required this.tableData, required this.updateTableData});
 
   static Color getColorForLength(double length) {
     const double blueThreshold = 0.0;
@@ -166,7 +169,8 @@ class DataTableWidget extends StatelessWidget {
                       ],
                       onSelectChanged: (selected) {
                         if (selected != null && selected) {
-                          // Add interaction logic here if needed
+                          DataUtils.showEditPopup(
+                              context, record, updateTableData);
                         }
                       },
                     );

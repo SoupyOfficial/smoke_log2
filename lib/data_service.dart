@@ -18,6 +18,7 @@ class DataService {
 
     return snapshot.docs.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
+      data['id'] = doc.id;
       return InhalationRecord.fromFirestore(data);
     }).toList();
   }
@@ -33,6 +34,7 @@ class DataService {
 
     return snapshot.docs.map((doc) {
       final data = doc.data() as Map<String, dynamic>;
+      data['id'] = doc.id;
       return InhalationRecord.fromFirestore(data);
     }).toList();
   }

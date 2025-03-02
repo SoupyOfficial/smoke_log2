@@ -75,6 +75,20 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
     }
   }
 
+  void _updateTableData(InhalationRecord updatedRecord) {
+    setState(() {
+      print("Refreshing UI");
+      // Find the index of the record with the matching id
+      int index =
+          _records.indexWhere((record) => record.id == updatedRecord.id);
+
+      if (index != -1) {
+        // Update the record at the found index
+        _records[index] = updatedRecord;
+      }
+    });
+  }
+
   // data_analysis_page.dart
   Widget _buildDropdowns() {
     return Padding(
@@ -173,8 +187,7 @@ class _DataAnalysisPageState extends State<DataAnalysisPage> {
             ),
             Expanded(
               child: DataTableWidget(
-                tableData: _records,
-              ),
+                  tableData: _records, updateTableData: _updateTableData),
             ),
           ],
         ),
